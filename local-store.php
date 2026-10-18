@@ -52,8 +52,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
     header('X-Accel-Redirect: /_stored/' . $id . '.bin'); exit;
 }
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') fail('不支持此请求', 405);
-$key = trim(file_get_contents('/etc/lanzou-upload.key'));
-if (!$key || !hash_equals($key, $_SERVER['HTTP_X_UPLOAD_KEY'] ?? ($_POST['key'] ?? ''))) fail('上传口令不正确', 403);
 $action=$_POST['action'] ?? 'upload';
 if ($action==='init') {
     $size=filter_var($_POST['size'] ?? '',FILTER_VALIDATE_INT);

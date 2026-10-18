@@ -1,30 +1,29 @@
 <!doctype html><html lang="zh-CN"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>文件临时分享</title>
 <style>body{max-width:650px;margin:60px auto;padding:24px;font:17px system-ui;background:#f5f7fb;color:#172338}input,button{display:block;margin:20px 0;padding:12px;max-width:95%}button{background:#245cdd;color:white;border:0;border-radius:8px;cursor:pointer}progress{width:100%}a{overflow-wrap:anywhere}small{color:#526078}</style>
 <h1>上传文件，获取下载链接</h1><p>文件直接保存到服务器，24 小时后自动删除。单个文件最大 2 GB，自动分成约 10 片上传。</p><small>知道链接的人均可下载。当前使用 HTTP，暂不适合传输敏感文件。</small>
-<form id="form"><input id="key" type="password" placeholder="输入上传口令" required autocomplete="current-password"><input id="file" type="file" required><button id="submit">上传并生成链接</button></form><progress id="progress" value="0" max="100"></progress><p id="status"></p><a id="link" hidden></a><button id="copy" hidden>复制链接</button>
+<form id="form"><input id="file" type="file" required><button id="submit">上传并生成链接</button></form><progress id="progress" value="0" max="100"></progress><p id="status"></p><a id="link" hidden></a><button id="copy" hidden>复制链接</button>
 <script>
-const form=document.querySelector('#form'),file=document.querySelector('#file'),key=document.querySelector('#key'),statusEl=document.querySelector('#status'),link=document.querySelector('#link'),button=document.querySelector('#submit'),progress=document.querySelector('#progress'),copy=document.querySelector('#copy');
+const form=document.querySelector('#form'),file=document.querySelector('#file'),statusEl=document.querySelector('#status'),link=document.querySelector('#link'),button=document.querySelector('#submit'),progress=document.querySelector('#progress'),copy=document.querySelector('#copy');
 // Two browser workers use the server's adaptive chunk size.
-function request(fields, secret, onProgress) {
+function request(fields, onProgress) {
     return new Promise((resolve,reject)=>{
         const xhr=new XMLHttpRequest(),body=new FormData();
         for(const [name,value] of Object.entries(fields))body.append(name,value);
-        xhr.open('POST','local-store.php');xhr.setRequestHeader('X-Upload-Key',secret);xhr.timeout=3600000;
+        xhr.open('POST','local-store.php');xhr.timeout=3600000;
         xhr.upload.onprogress=e=>{if(e.lengthComputable && onProgress)onProgress(e.loaded/e.total)};
         xhr.onload=()=>{try{const out=JSON.parse(xhr.responseText);if(xhr.status!==200 || out.code!==0){const err=Error(out.msg||'服务器错误');err.status=xhr.status;throw err}resolve(out.data)}catch(err){reject(err)}};
         xhr.onerror=xhr.ontimeout=()=>reject(Error('网络中断或超时'));xhr.send(body);
     });
 }
 form.onsubmit=async e=>{
-    e.preventDefault();const selected=file.files[0],secret=key.value.trim();
-    if(!secret){statusEl.textContent='请输入上传口令';return}
+    e.preventDefault();const selected=file.files[0];
     if(selected.size>2*1073741824){statusEl.textContent='文件超过 2 GB';return}
-    button.disabled=file.disabled=key.disabled=true;link.hidden=copy.hidden=true;progress.value=0;copy.textContent='复制链接';
+    button.disabled=file.disabled=true;link.hidden=copy.hidden=true;progress.value=0;copy.textContent='复制链接';
     let stopped=false,taskCreated=false;
     const retry=async(fields,onProgress)=>{
         for(let attempt=0;attempt<4;attempt++){
             if(stopped)throw Error('上传已停止');
-            try{return await request(fields,secret,onProgress)}catch(err){
+            try{return await request(fields,onProgress)}catch(err){
                 if(attempt===3 || [400,403,404,413,507].includes(err.status))throw err;
                 statusEl.textContent='连接异常，正在进行第 '+(attempt+1)+'/3 次重试…';
                 await new Promise(r=>setTimeout(r,1000*(attempt+1)));
@@ -33,7 +32,7 @@ form.onsubmit=async e=>{
     };
     try{
         statusEl.textContent='正在创建分片上传任务…';
-        const task=await request({action:'init',name:selected.name,size:selected.size},secret);
+        const task=await request({action:'init',name:selected.name,size:selected.size});
         taskCreated=true;
         const sent=Array(task.count).fill(0);let next=0,complete=0;
         const worker=async()=>{
@@ -52,8 +51,8 @@ form.onsubmit=async e=>{
         const out=await retry({action:'finish',id:task.id});
         progress.value=100;link.href=out.url;link.textContent=out.url;link.hidden=copy.hidden=false;
         statusEl.textContent='上传成功！链接有效期至 '+new Date(out.expires*1000).toLocaleString();
-    }catch(err){stopped=true;statusEl.textContent=err.status===403?'上传口令不正确，请复制「网页上传口令.txt」中的完整内容后重试。':'上传失败：'+err.message+(taskCreated?'。未完成的分片将在 24 小时后清理。':'');}
-    finally{button.disabled=file.disabled=key.disabled=false}
+    }catch(err){stopped=true;statusEl.textContent='上传失败：'+err.message+(taskCreated?'。未完成的分片将在 24 小时后清理。':'');}
+    finally{button.disabled=file.disabled=false}
 };
 copy.onclick=async()=>{try{await navigator.clipboard.writeText(link.href);copy.textContent='已复制'}catch(e){const r=document.createRange();r.selectNodeContents(link);const s=getSelection();s.removeAllRanges();s.addRange(r);copy.textContent='链接已选中，请长按或按 Ctrl/Cmd+C 复制'}};
 </script></html>

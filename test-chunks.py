@@ -1,8 +1,7 @@
 import concurrent.futures, hashlib, json, pathlib, subprocess, tempfile
 BASE='http://127.0.0.1:8089/local-store.php'
-KEY=pathlib.Path('/etc/lanzou-upload.key').read_text().strip()
 def call(fields, part=None, expected=0):
-    args=['curl','-sS','--max-time','180','-H','X-Upload-Key: '+KEY]
+    args=['curl','-sS','--max-time','180']
     for k,v in fields.items(): args+=['-F',f'{k}={v}']
     if part is not None: args+=['-F','file=@'+str(part)]
     obj=json.loads(subprocess.check_output(args+[BASE]))

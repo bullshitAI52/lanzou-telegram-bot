@@ -19,8 +19,8 @@ with tempfile.TemporaryDirectory(prefix='vps-upload-test-') as tmp:
     assert digest(src)==digest(dst)
     print('110 MB upload and download: PASS; SHA256 matches')
     code=subprocess.check_output(['curl','-sS','-o','/dev/null','-w','%{http_code}','-X','POST',base+'/local-store.php']).decode()
-    assert code=='403', code
-    print('Unauthenticated upload rejected: PASS')
+    assert code=='400', code
+    print('Missing file rejected: PASS')
     token=query.split('=',1)[1]
     for suffix in ['.bin','.json']:
         (pathlib.Path('/var/lib/lanzou-files')/(token+suffix)).unlink()

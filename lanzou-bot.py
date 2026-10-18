@@ -33,7 +33,7 @@ def multipart(url, fields, path):
 
 def lanzou_login():
     req = urllib.request.Request(API + '?action=login', data=urllib.parse.urlencode({'user': USER, 'pass': PASS}).encode())
-    with urllib.request.urlopen(req, timeout=30) as r:
+    with urllib.request.urlopen(req, timeout=300) as r:
         obj = json.loads(r.read())
     return obj.get('data', {}).get('cookie_str', '')
 
@@ -77,7 +77,7 @@ def main():
                         cookie = lanzou_login()
                     except Exception as e:
                         print('Lanzou login failed:', repr(e), file=sys.stderr)
-                        send(chat, '蓝奏云登录超时或失败，请稍后重试。')
+                        send(chat, '蓝奏云登录超过 5 分钟仍未完成或失败，请稍后重试。')
                         continue
                     if not cookie:
                         send(chat, '蓝奏云登录失败，请检查账号或密码。'); continue

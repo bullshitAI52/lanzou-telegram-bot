@@ -33,7 +33,7 @@ def multipart(url, fields, path):
 
 def lanzou_login():
     req = urllib.request.Request(API + '?action=login', data=urllib.parse.urlencode({'user': USER, 'pass': PASS}).encode())
-    with urllib.request.urlopen(req, timeout=120) as r:
+    with urllib.request.urlopen(req, timeout=30) as r:
         obj = json.loads(r.read())
     return obj.get('data', {}).get('cookie_str', '')
 
@@ -73,7 +73,12 @@ def main():
                     if not (USER and PASS):
                         send(chat, '蓝奏云账号尚未配置，暂时无法上传。'); continue
                     send(chat, '正在登录蓝奏云，首次上传可能需要稍候……')
-                    cookie = lanzou_login()
+                    try:
+                        cookie = lanzou_login()
+                    except Exception as e:
+                        print('Lanzou login failed:', repr(e), file=sys.stderr)
+                        send(chat, '蓝奏云登录超时或失败，请稍后重试。')
+                        continue
                     if not cookie:
                         send(chat, '蓝奏云登录失败，请检查账号或密码。'); continue
                 info = tg('getFile', {'file_id': file_id})['result']

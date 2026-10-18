@@ -55,8 +55,19 @@ def main():
                     send(chat, '发送文件，我会自动上传到蓝奏云并返回下载地址。')
                     continue
                 doc = msg.get('document')
-                if not doc:
-                    send(chat, '请直接发送文件。'); continue
+                if doc:
+                    file_id = doc['file_id']
+                    file_name = doc.get('file_name', 'file.bin')
+                elif msg.get('video'):
+                    video = msg['video']
+                    file_id = video['file_id']
+                    file_name = video.get('file_name') or f"video-{video.get('file_unique_id', 'upload')}.mp4"
+                elif msg.get('photo'):
+                    photo = msg['photo'][-1]
+                    file_id = photo['file_id']
+                    file_name = f"photo-{photo.get('file_unique_id', 'upload')}.jpg"
+                else:
+                    send(chat, '请发送图片、视频或文件。'); continue
                 send(chat, '已收到文件，正在上传，请稍候……')
                 if not cookie:
                     if not (USER and PASS):
@@ -65,9 +76,9 @@ def main():
                     cookie = lanzou_login()
                     if not cookie:
                         send(chat, '蓝奏云登录失败，请检查账号或密码。'); continue
-                info = tg('getFile', {'file_id': doc['file_id']})['result']
+                info = tg('getFile', {'file_id': file_id})['result']
                 with tempfile.TemporaryDirectory(prefix='lanzou-tg-') as td:
-                    path = os.path.join(td, doc.get('file_name', 'file.bin'))
+                    path = os.path.join(td, file_name)
                     urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{TOKEN}/{info["file_path"]}', path)
                     out = upload(path, cookie)
                 if out.get('code') == 0:

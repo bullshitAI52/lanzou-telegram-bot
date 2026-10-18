@@ -6,6 +6,7 @@ API = os.environ.get('LANZOU_API', 'http://127.0.0.1:8089/api.php')
 USER = os.environ.get('LANZOU_USER', '').strip()
 PASS = os.environ.get('LANZOU_PASS', '').strip()
 COOKIE = os.environ.get('LANZOU_COOKIE', '').strip()
+IMGBB_API_KEY = os.environ.get('IMGBB_API_KEY', '').strip()
 ALLOWED = {x.strip() for x in os.environ.get('ALLOWED_CHAT_IDS', '').split(',') if x.strip()}
 
 if not TOKEN:
@@ -41,6 +42,15 @@ def lanzou_login():
 def upload(path, cookie):
     return multipart(API + '?action=upload', {'cookie': cookie, 'folder_name': ''}, path)
 
+def imgbb_upload(path):
+    if not IMGBB_API_KEY:
+        raise RuntimeError('IMGBB_API_KEY is not configured')
+    out = multipart('https://api.imgbb.com/1/upload', {'key': IMGBB_API_KEY}, path)
+    if out.get('success') and out.get('data'):
+        data = out['data']
+        return data.get('display_url') or data.get('url') or data.get('image', {}).get('url')
+    raise RuntimeError(out.get('error', {}).get('message') or str(out))
+
 def main():
     offset = 0
     cookie = COOKIE
@@ -70,6 +80,19 @@ def main():
                 else:
                     send(chat, '请发送图片、视频或文件。'); continue
                 send(chat, '已收到文件，正在上传，请稍候……')
+                is_photo = bool(msg.get('photo'))
+                if is_photo:
+                    try:
+                        info = tg('getFile', {'file_id': file_id})['result']
+                        with tempfile.TemporaryDirectory(prefix='imgbb-tg-') as td:
+                            path = os.path.join(td, file_name)
+                            urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{TOKEN}/{info["file_path"]}', path)
+                            link = imgbb_upload(path)
+                        send(chat, '图片上传成功：\n' + link)
+                    except Exception as e:
+                        print('ImgBB upload failed:', repr(e), file=sys.stderr)
+                        send(chat, '图片上传失败：' + str(e))
+                    continue
                 if not cookie:
                     if not (USER and PASS):
                         send(chat, '蓝奏云账号尚未配置，暂时无法上传。'); continue

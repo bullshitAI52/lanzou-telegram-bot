@@ -42,7 +42,7 @@ def upload(path, cookie):
 
 def main():
     offset = 0
-    cookie = lanzou_login() if USER and PASS else ''
+    cookie = ''
     while True:
         try:
             result = tg('getUpdates', {'timeout': 50, 'offset': offset})
@@ -57,9 +57,14 @@ def main():
                 doc = msg.get('document')
                 if not doc:
                     send(chat, '请直接发送文件。'); continue
-                if not cookie:
-                    send(chat, '蓝奏云账号尚未配置，暂时无法上传。'); continue
                 send(chat, '已收到文件，正在上传，请稍候……')
+                if not cookie:
+                    if not (USER and PASS):
+                        send(chat, '蓝奏云账号尚未配置，暂时无法上传。'); continue
+                    send(chat, '正在登录蓝奏云，首次上传可能需要稍候……')
+                    cookie = lanzou_login()
+                    if not cookie:
+                        send(chat, '蓝奏云登录失败，请检查账号或密码。'); continue
                 info = tg('getFile', {'file_id': doc['file_id']})['result']
                 with tempfile.TemporaryDirectory(prefix='lanzou-tg-') as td:
                     path = os.path.join(td, doc.get('file_name', 'file.bin'))

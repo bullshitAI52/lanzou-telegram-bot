@@ -1,0 +1,15 @@
+[Unit]
+Description=Telegram to Lanzou uploader
+After=network-online.target php8.1-fpm.service nginx.service
+Wants=network-online.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/etc/lanzou-telegram.env
+ExecStart=/usr/bin/python3 /opt/lanzou-telegram-bot/bot.py
+Restart=always
+RestartSec=5
+User=root
+
+[Install]
+WantedBy=multi-user.target

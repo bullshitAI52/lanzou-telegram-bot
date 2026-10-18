@@ -7,6 +7,7 @@ USER = os.environ.get('LANZOU_USER', '').strip()
 PASS = os.environ.get('LANZOU_PASS', '').strip()
 COOKIE = os.environ.get('LANZOU_COOKIE', '').strip()
 IMGBB_API_KEY = os.environ.get('IMGBB_API_KEY', '').strip()
+LOCAL_UPLOAD_KEY = os.environ.get('LOCAL_UPLOAD_KEY', '').strip()
 ALLOWED = {x.strip() for x in os.environ.get('ALLOWED_CHAT_IDS', '').split(',') if x.strip()}
 
 if not TOKEN:
@@ -63,7 +64,7 @@ def main():
                 chat = str((msg.get('chat') or {}).get('id', ''))
                 if not chat or (ALLOWED and chat not in ALLOWED): continue
                 if msg.get('text', '').strip() == '/start':
-                    send(chat, '发送文件，我会自动上传到蓝奏云并返回下载地址。')
+                    send(chat, '图片上传到 ImgBB；视频和文件临时保存到服务器，链接有效期 24 小时。大文件请使用网页 http://107.172.32.153:8089/')
                     continue
                 doc = msg.get('document')
                 if doc:
@@ -92,6 +93,23 @@ def main():
                     except Exception as e:
                         print('ImgBB upload failed:', repr(e), file=sys.stderr)
                         send(chat, '图片上传失败：' + str(e))
+                    continue
+                if LOCAL_UPLOAD_KEY:
+                    try:
+                        item = doc or msg.get('video') or {}
+                        if item.get('file_size', 0) > 20 * 1048576:
+                            send(chat, '此机器人的 Telegram 文件下载通道限制为 20 MB，大文件请使用网页：http://107.172.32.153:8089/')
+                            continue
+                        info = tg('getFile', {'file_id': file_id})['result']
+                        with tempfile.TemporaryDirectory(prefix='vps-tg-') as td:
+                            path = os.path.join(td, os.path.basename(file_name))
+                            urllib.request.urlretrieve(f'https://api.telegram.org/file/bot{TOKEN}/{info["file_path"]}', path)
+                            out = multipart('http://127.0.0.1:8089/local-store.php', {'key': LOCAL_UPLOAD_KEY}, path)
+                        if out.get('code') != 0:
+                            raise RuntimeError(out.get('msg', '保存失败'))
+                        send(chat, '上传成功，链接有效期 24 小时：\n' + out['data']['url'])
+                    except Exception:
+                        send(chat, '文件保存失败，请重试或使用网页上传。')
                     continue
                 if not cookie:
                     if not (USER and PASS):

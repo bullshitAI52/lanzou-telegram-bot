@@ -11,11 +11,8 @@ TELEGRAM_BOT_TOKEN=
 LANZOU_API=http://127.0.0.1:8089/api.php
 LANZOU_USER=
 LANZOU_PASS=
-LANZOU_COOKIE=
 ALLOWED_CHAT_IDS=
 ```
-
-If `LANZOU_COOKIE` is set, the bot uses it directly and skips the slow account-password login.
 
 Never commit real tokens, passwords, cookies, or `.env` files.
 

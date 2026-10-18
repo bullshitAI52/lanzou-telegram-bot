@@ -2306,8 +2306,8 @@
 
                     appendLog('<i class="fa-solid fa-scissors" style="color: var(--accent-cyan);"></i>', `完成前端切片分割，共切为 ${chunks.length} 个切片 (大小 10~${maxSizeMB}MB)`);
 
-                    // 严格并发控制执行池 (双通道并发，维持最多 2 个切片同时传输)
-                    const limit = Math.min(2, chunks.length);
+                    // 受限 VPS/上游网络使用单通道，避免蓝奏云 HTTPS 并发连接超时
+                    const limit = Math.min(1, chunks.length);
 
                     // 动态初始化双通道专属进度条 DOM
                     if (channelsContainer) {

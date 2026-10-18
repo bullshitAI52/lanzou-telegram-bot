@@ -20,13 +20,13 @@ def tg(method, data=None):
 def send(chat, text):
     tg('sendMessage', {'chat_id': chat, 'text': text})
 
-def multipart(url, fields, path):
+def multipart(url, fields, path, file_field='file'):
     boundary = '----lanzou' + uuid.uuid4().hex
     body = bytearray()
     for k, v in fields.items():
         body += f'--{boundary}\r\nContent-Disposition: form-data; name="{k}"\r\n\r\n{v}\r\n'.encode()
     name = os.path.basename(path)
-    body += f'--{boundary}\r\nContent-Disposition: form-data; name="file"; filename="{name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode()
+    body += f'--{boundary}\r\nContent-Disposition: form-data; name="{file_field}"; filename="{name}"\r\nContent-Type: application/octet-stream\r\n\r\n'.encode()
     with open(path, 'rb') as f:
         while chunk := f.read(1024 * 1024): body += chunk
     body += f'\r\n--{boundary}--\r\n'.encode()
@@ -45,7 +45,7 @@ def upload(path, cookie):
 def imgbb_upload(path):
     if not IMGBB_API_KEY:
         raise RuntimeError('IMGBB_API_KEY is not configured')
-    out = multipart('https://api.imgbb.com/1/upload', {'key': IMGBB_API_KEY}, path)
+    out = multipart('https://api.imgbb.com/1/upload', {'key': IMGBB_API_KEY}, path, 'image')
     if out.get('success') and out.get('data'):
         data = out['data']
         return data.get('display_url') or data.get('url') or data.get('image', {}).get('url')

@@ -5,6 +5,7 @@ TOKEN = os.environ.get('TELEGRAM_BOT_TOKEN', '').strip()
 API = os.environ.get('LANZOU_API', 'http://127.0.0.1:8089/api.php')
 USER = os.environ.get('LANZOU_USER', '').strip()
 PASS = os.environ.get('LANZOU_PASS', '').strip()
+COOKIE = os.environ.get('LANZOU_COOKIE', '').strip()
 ALLOWED = {x.strip() for x in os.environ.get('ALLOWED_CHAT_IDS', '').split(',') if x.strip()}
 
 if not TOKEN:
@@ -42,7 +43,7 @@ def upload(path, cookie):
 
 def main():
     offset = 0
-    cookie = ''
+    cookie = COOKIE
     while True:
         try:
             result = tg('getUpdates', {'timeout': 50, 'offset': offset})

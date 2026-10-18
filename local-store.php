@@ -57,13 +57,14 @@ if (!$key || !hash_equals($key, $_SERVER['HTTP_X_UPLOAD_KEY'] ?? ($_POST['key'] 
 $action=$_POST['action'] ?? 'upload';
 if ($action==='init') {
     $size=filter_var($_POST['size'] ?? '',FILTER_VALIDATE_INT);
-    if ($size===false || $size<0 || $size>512*1048576) fail('文件大小无效，最大 512 MB');
+    if ($size===false || $size<0 || $size>2*1073741824) fail('文件大小无效，最大 2 GB');
     if (reserved()+$size>4*1073741824 || disk_free_space(STORE)<2*1073741824+2*$size) fail('空间不足，无法预留上传及合并空间',507);
     $id=bin2hex(random_bytes(24)); $dir=STORE.'/parts-'.$id;
     if (!mkdir($dir,0750)) fail('无法创建上传任务',500);
-    $m=['name'=>basename($_POST['name'] ?? 'download'),'size'=>$size,'count'=>max(1,(int)ceil($size/CHUNK)),'created'=>time()];
+    $chunk=max(1048576,(int)ceil($size/10));
+    $m=['name'=>basename($_POST['name'] ?? 'download'),'size'=>$size,'chunk_size'=>$chunk,'count'=>max(1,(int)ceil($size/$chunk)),'created'=>time()];
     if (file_put_contents($dir.'/manifest.json',json_encode($m))===false) fail('无法保存任务',500);
-    reply(['id'=>$id,'chunk_size'=>CHUNK,'count'=>$m['count']]);
+    reply(['id'=>$id,'chunk_size'=>$chunk,'count'=>$m['count']]);
 }
 if (in_array($action,['part','finish'],true)) {
     $id=$_POST['id'] ?? '';
@@ -73,11 +74,12 @@ if (in_array($action,['part','finish'],true)) {
     $dir=STORE.'/parts-'.$id;
     $m=json_decode((string)@file_get_contents($dir.'/manifest.json'),true);
     if (!$m) fail('上传任务已过期，请重新上传',404);
+    $chunk=$m['chunk_size'] ?? CHUNK;
     if ($action==='part') {
         $index=filter_var($_POST['index'] ?? '',FILTER_VALIDATE_INT);
         if ($index===false || $index<0 || $index>=$m['count']) fail('分片编号无效');
         $f=$_FILES['file'] ?? null;
-        $expected=min(CHUNK,$m['size']-$index*CHUNK);
+        $expected=min($chunk,$m['size']-$index*$chunk);
         if (!$f || $f['error']!==UPLOAD_ERR_OK || $f['size']!==$expected) fail('分片不完整，请重试');
         $hash=$_POST['sha256'] ?? '';
         if ($hash!=='' && !hash_equals(hash_file('sha256',$f['tmp_name']),$hash)) fail('分片校验失败');
@@ -86,7 +88,7 @@ if (in_array($action,['part','finish'],true)) {
         reply(['index'=>$index]);
     }
     for ($i=0;$i<$m['count'];$i++) {
-        if (!is_file($dir.'/'.$i.'.part') || filesize($dir.'/'.$i.'.part')!==min(CHUNK,$m['size']-$i*CHUNK)) fail('分片尚未全部上传');
+        if (!is_file($dir.'/'.$i.'.part') || filesize($dir.'/'.$i.'.part')!==min($chunk,$m['size']-$i*$chunk)) fail('分片尚未全部上传');
     }
     if (disk_free_space(STORE)<2*1073741824+$m['size']) fail('合并空间不足',507);
     $temp=$dir.'/merged.tmp'; $out=fopen($temp,'wb');
@@ -94,7 +96,7 @@ if (in_array($action,['part','finish'],true)) {
     for ($i=0;$i<$m['count'];$i++) {
         $in=fopen($dir.'/'.$i.'.part','rb');
         $copied=stream_copy_to_stream($in,$out); fclose($in);
-        if ($copied!==min(CHUNK,$m['size']-$i*CHUNK)) { fclose($out); @unlink($temp); fail('合并写入失败',500); }
+        if ($copied!==min($chunk,$m['size']-$i*$chunk)) { fclose($out); @unlink($temp); fail('合并写入失败',500); }
     }
     fclose($out);
     if (filesize($temp)!==$m['size']) fail('合并大小校验失败',500);
@@ -108,7 +110,7 @@ if (in_array($action,['part','finish'],true)) {
 if ($action!=='upload') fail('未知操作');
 $file = $_FILES['file'] ?? null;
 if (!$file || $file['error'] !== UPLOAD_ERR_OK) fail('文件未完整收到，或超过服务器限制');
-if ($file['size'] > 512 * 1048576) fail('单个文件最大 512 MB', 413);
+if ($file['size'] > 512 * 1048576) fail('超过 512 MB 请使用网页分片上传，最大 2 GB', 413);
 $used = reserved();
 if ($used + $file['size'] > 4 * 1073741824 || disk_free_space(STORE) < 2 * 1073741824) fail('临时存储空间不足，请等待旧文件过期', 507);
 $id = bin2hex(random_bytes(24));

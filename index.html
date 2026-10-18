@@ -1,0 +1,2780 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>蓝奏云盘 - 极速云存储 Web 客户端</title>
+
+    <!-- Google Fonts & FontAwesome -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        :root {
+            --bg-dark: #080c14;
+            --sidebar-bg: #0f172a;
+            --card-bg: rgba(30, 41, 59, 0.65);
+            --card-hover: rgba(30, 41, 59, 0.9);
+            --card-border: rgba(255, 255, 255, 0.08);
+            --accent-primary: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.35);
+            --accent-cyan: #06b6d4;
+            --accent-emerald: #10b981;
+            --accent-amber: #f59e0b;
+            --accent-rose: #f43f5e;
+            --text-main: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --input-bg: #0f172a;
+            --input-border: rgba(255, 255, 255, 0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', 'Inter', system-ui, -apple-system, sans-serif;
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+            background-image:
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.14) 0px, transparent 45%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 45%);
+        }
+
+        /* 侧边导航栏 Sidebar */
+        aside {
+            width: 260px;
+            background: var(--sidebar-bg);
+            border-right: 1px solid var(--card-border);
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem 1rem;
+            z-index: 10;
+            user-select: none;
+        }
+
+        .brand-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0 0.5rem 1.5rem 0.5rem;
+            border-bottom: 1px solid var(--card-border);
+            margin-bottom: 1.5rem;
+        }
+
+        .brand-logo .logo-box {
+            width: 44px;
+            height: 44px;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-cyan));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 1.4rem;
+            box-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        .brand-logo .logo-text h2 {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            background: linear-gradient(90deg, #fff, #cbd5e1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-logo .logo-text span {
+            font-size: 0.72rem;
+            color: var(--accent-cyan);
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            padding: 0 0.75rem;
+            margin-bottom: 0.6rem;
+        }
+
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+
+        .menu-item button {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.75rem 1rem;
+            border-radius: 10px;
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+
+        .menu-item button:hover {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--text-main);
+        }
+
+        .menu-item button.active {
+            background: var(--accent-primary);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--accent-glow);
+        }
+
+        .menu-item button i {
+            font-size: 1.1rem;
+            width: 22px;
+            text-align: center;
+        }
+
+        /* 侧边栏底部存储与登录卡片 */
+        .sidebar-bottom {
+            margin-top: auto;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1rem;
+        }
+
+        .user-status {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-rose));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: #fff;
+            font-size: 0.95rem;
+        }
+
+        .user-meta h4 {
+            font-size: 0.88rem;
+            font-weight: 700;
+        }
+
+        .user-meta p {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+
+        /* 主工作区 Content Area */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* Top Header */
+        .top-bar {
+            height: 70px;
+            border-bottom: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(16px);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.75rem;
+            z-index: 5;
+            gap: 1rem;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .breadcrumb-item {
+            cursor: pointer;
+            transition: color 0.2s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+        }
+
+        .breadcrumb-item:hover {
+            color: var(--accent-cyan);
+        }
+
+        .breadcrumb-item.active {
+            color: var(--text-main);
+            font-weight: 700;
+        }
+
+        .top-search-box {
+            position: relative;
+            width: 240px;
+        }
+
+        .top-search-box input {
+            width: 100%;
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 20px;
+            padding: 0.45rem 1rem 0.45rem 2.2rem;
+            color: #fff;
+            font-size: 0.82rem;
+            outline: none;
+            transition: all 0.2s;
+        }
+
+        .top-search-box input:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+            width: 280px;
+        }
+
+        .top-search-box i {
+            position: absolute;
+            left: 0.85rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 0.8rem;
+        }
+
+        .top-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        /* 按钮通用组 */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.6rem 1.1rem;
+            border-radius: 10px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-decoration: none;
+            user-select: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent-primary), #4f46e5);
+            color: #fff;
+            box-shadow: 0 4px 14px var(--accent-glow);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 20px var(--accent-glow);
+        }
+
+        .btn-cyan {
+            background: linear-gradient(135deg, var(--accent-cyan), #0891b2);
+            color: #fff;
+        }
+
+        .btn-cyan:hover {
+            opacity: 0.9;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.06);
+            color: var(--text-main);
+            border: 1px solid var(--card-border);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.12);
+        }
+
+        .btn-danger {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--accent-rose);
+            border: 1px solid rgba(244, 63, 94, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: var(--accent-rose);
+            color: #fff;
+        }
+
+        .btn-icon {
+            padding: 0.5rem;
+            border-radius: 8px;
+            width: 34px;
+            height: 34px;
+        }
+
+        .btn-sm {
+            padding: 0.45rem 0.85rem;
+            font-size: 0.8rem;
+            border-radius: 8px;
+        }
+
+        /* 视图容器 View Sections */
+        .content-body {
+            flex: 1;
+            padding: 1.75rem 2rem;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .view-section {
+            display: none;
+            animation: fadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .view-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* 文件视图控制条 */
+        .explorer-toolbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+            background: rgba(15, 23, 42, 0.4);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--card-border);
+        }
+
+        .view-switcher {
+            display: flex;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 3px;
+            border-radius: 8px;
+            gap: 2px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 0.35rem 0.65rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s;
+        }
+
+        .view-btn.active {
+            background: var(--accent-primary);
+            color: #fff;
+        }
+
+        /* 网格视图 File Grid */
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .file-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            position: relative;
+            transition: all 0.25s ease;
+            backdrop-filter: blur(12px);
+            user-select: none;
+        }
+
+        .file-card:hover {
+            background: var(--card-hover);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        .file-card.selected {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.15);
+        }
+
+        .card-checkbox {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+            accent-color: var(--accent-primary);
+            z-index: 2;
+        }
+
+        .file-card .icon-box {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .file-card .icon-box.folder {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--accent-amber);
+        }
+
+        .file-card .icon-box.zip {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-primary);
+        }
+
+        .file-card .icon-box.pdf {
+            background: rgba(244, 63, 94, 0.15);
+            color: var(--accent-rose);
+        }
+
+        .file-card .icon-box.code {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+        }
+
+        .file-card .icon-box.media {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+        }
+
+        .file-card .file-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .file-card .file-info {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+
+        .file-card .action-menu {
+            display: flex;
+            gap: 0.35rem;
+            margin-top: 0.2rem;
+            border-top: 1px solid var(--card-border);
+            padding-top: 0.6rem;
+        }
+
+        .file-card .action-menu button {
+            flex: 1;
+            padding: 0.35rem 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: none;
+            border-radius: 6px;
+            color: var(--text-secondary);
+            font-size: 0.78rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-card .action-menu button:hover {
+            background: var(--accent-primary);
+            color: #fff;
+        }
+
+        /* 列表视图 File Table */
+        .file-table-container {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            overflow: hidden;
+            backdrop-filter: blur(12px);
+        }
+
+        .file-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: left;
+            font-size: 0.88rem;
+        }
+
+        .file-table th,
+        .file-table td {
+            padding: 0.85rem 1.25rem;
+            border-bottom: 1px solid var(--card-border);
+        }
+
+        .file-table th {
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-muted);
+            font-size: 0.78rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+        }
+
+        .file-table tbody tr {
+            transition: background 0.2s;
+        }
+
+        .file-table tbody tr:hover {
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .file-table tbody tr.selected {
+            background: rgba(99, 102, 241, 0.12);
+        }
+
+        /* 批量工具条 Batch Toolbar */
+        .batch-bar {
+            position: fixed;
+            bottom: 2rem;
+            left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-primary);
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6), 0 0 20px var(--accent-glow);
+            border-radius: 30px;
+            padding: 0.75rem 1.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            z-index: 100;
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .batch-bar.active {
+            transform: translateX(-50%) translateY(0);
+        }
+
+        /* 模态弹窗 Modal Container */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(3, 7, 18, 0.75);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal-card {
+            background: #0f172a;
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            width: 100%;
+            max-width: 500px;
+            padding: 1.75rem;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+            animation: modalIn 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes modalIn {
+            from {
+                opacity: 0;
+                transform: scale(0.94);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.25rem;
+        }
+
+        .modal-header h3 {
+            font-size: 1.1rem;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .close-modal {
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            font-size: 1.35rem;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .close-modal:hover {
+            color: #fff;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+            margin-bottom: 1.1rem;
+        }
+
+        .form-group label {
+            font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+        }
+
+        .form-control {
+            background: var(--input-bg);
+            border: 1px solid var(--input-border);
+            border-radius: 10px;
+            padding: 0.75rem 1rem;
+            color: #fff;
+            font-size: 0.9rem;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+
+        /* Toast 消息提示组件 */
+        #toastContainer {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast-item {
+            min-width: 280px;
+            max-width: 400px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            padding: 0.85rem 1.25rem;
+            color: #fff;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            backdrop-filter: blur(12px);
+            pointer-events: auto;
+            animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes toastIn {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        .toast-item.success {
+            border-left: 4px solid var(--accent-emerald);
+        }
+
+        .toast-item.error {
+            border-left: 4px solid var(--accent-rose);
+        }
+
+        .toast-item.info {
+            border-left: 4px solid var(--accent-cyan);
+        }
+
+        .toast-item.warning {
+            border-left: 4px solid var(--accent-amber);
+        }
+
+        /* 链接解析面板样式 */
+        .parser-hero {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 2.5rem;
+            text-align: center;
+            backdrop-filter: blur(16px);
+            margin-bottom: 2rem;
+        }
+
+        .parser-hero h2 {
+            font-size: 1.75rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(90deg, #fff, var(--accent-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .parser-input-group {
+            display: flex;
+            gap: 0.75rem;
+            max-width: 650px;
+            margin: 1.5rem auto 0 auto;
+        }
+
+        .result-card {
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid var(--card-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            display: none;
+        }
+
+        /* 上传拖拽体验区 */
+        .drag-box {
+            border: 2px dashed rgba(255, 255, 255, 0.18);
+            border-radius: 18px;
+            padding: 3.5rem 2rem;
+            text-align: center;
+            background: rgba(15, 23, 42, 0.4);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .drag-box:hover,
+        .drag-box.dragover {
+            border-color: var(--accent-primary);
+            background: rgba(99, 102, 241, 0.1);
+        }
+
+        .drag-box i {
+            font-size: 3.2rem;
+            color: var(--accent-primary);
+            margin-bottom: 1rem;
+        }
+
+        /* 进度条 Progress Bar */
+        .progress-bar-wrap {
+            width: 100%;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 0.85rem;
+            display: none;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-cyan));
+            transition: width 0.2s linear;
+        }
+
+        /* 二维码预览 Container */
+        .qr-box {
+            width: 160px;
+            height: 160px;
+            background: #fff;
+            padding: 10px;
+            border-radius: 12px;
+            margin: 1rem auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .qr-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- 隐藏的直接上传文件 Input -->
+    <input type="file" id="directFileInput" style="display: none;"
+        onchange="if(this.files.length){ uploadFileDirectly(this.files[0]); this.value=''; }">
+
+    <!-- Toast 容器 -->
+    <div id="toastContainer"></div>
+
+    <!-- 侧边栏 Sidebar -->
+    <aside>
+        <div class="brand-logo">
+            <div class="logo-box">
+                <i class="fa-solid fa-cloud"></i>
+            </div>
+            <div class="logo-text">
+                <h2>蓝奏云盘</h2>
+                <span>LanZou Cloud Drive</span>
+            </div>
+        </div>
+
+        <div class="nav-section-title">网盘服务</div>
+        <ul class="menu-list">
+            <li class="menu-item">
+                <button class="active" onclick="switchTab('tab-files', this)">
+                    <i class="fa-solid fa-folder-closed"></i> 我的文件
+                </button>
+            </li>
+            <li class="menu-item">
+                <button onclick="switchTab('tab-parse', this)">
+                    <i class="fa-solid fa-bolt"></i> 直链/提取码解析
+                </button>
+            </li>
+            <li class="menu-item">
+                <button onclick="switchTab('tab-upload', this)">
+                    <i class="fa-solid fa-cloud-arrow-up"></i> 文件极速上传
+                </button>
+            </li>
+        </ul>
+
+        <div class="sidebar-bottom">
+            <div class="user-status">
+                <div class="avatar" id="userAvatar">客</div>
+                <div class="user-meta">
+                    <h4 id="userNameDisplay">未登录</h4>
+                    <p id="userStatusText">游客访问模式</p>
+                </div>
+            </div>
+            <button class="btn btn-secondary btn-sm" style="width: 100%;" onclick="openLoginModal()">
+                <i class="fa-solid fa-key"></i> 账号登录 / 凭证
+            </button>
+        </div>
+    </aside>
+
+    <!-- 主容器 Main Workspace -->
+    <main id="mainAppArea">
+
+        <!-- 顶栏 Top Bar -->
+        <div class="top-bar">
+            <!-- 面包屑路径 navigation -->
+            <div class="breadcrumb" id="breadcrumbNav">
+                <span class="breadcrumb-item active" onclick="loadFolder(-1, '根目录')"><i class="fa-solid fa-house"></i>
+                    根目录</span>
+            </div>
+
+            <!-- 搜索框 -->
+            <div class="top-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="searchInput" placeholder="搜索文件名..." oninput="onSearchFilter(this.value)">
+            </div>
+
+            <!-- 顶栏操作区 -->
+            <div class="top-actions">
+                <button class="btn btn-secondary btn-sm" onclick="checkServerIpStatus()" title="检测当前服务器出口 IP 是否被蓝奏云官方封禁">
+                    <i class="fa-solid fa-shield-halved"></i> IP检测
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="loadFolder(currentFolderId, currentFolderName)">
+                    <i class="fa-solid fa-rotate-right"></i> 刷新
+                </button>
+                <button class="btn btn-secondary btn-sm" onclick="openMkdirModal()">
+                    <i class="fa-solid fa-folder-plus"></i> 新建文件夹
+                </button>
+                <button class="btn btn-primary btn-sm" onclick="document.getElementById('directFileInput').click()">
+                    <i class="fa-solid fa-upload"></i> 上传文件
+                </button>
+            </div>
+        </div>
+
+        <!-- 页面视图区域 View Sections -->
+        <div class="content-body">
+
+            <!-- 视图 1: 我的文件列表 Explorer -->
+            <div class="view-section active" id="tab-files">
+
+                <div class="explorer-toolbar">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <h3 style="font-size: 1.05rem; font-weight: 800;" id="currentFolderTitle">根目录</h3>
+                        <span style="font-size: 0.82rem; color: var(--text-muted);" id="fileCountBadge">正在加载...</span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <label
+                            style="font-size: 0.82rem; color: var(--text-secondary); cursor: pointer; display: flex; align-items: center; gap: 0.35rem;">
+                            <input type="checkbox" id="selectAllCheckbox" onchange="toggleSelectAll(this.checked)"> 全选
+                        </label>
+                        <div class="view-switcher">
+                            <button class="view-btn active" id="btnViewGrid" onclick="setExplorerViewMode('grid')"><i
+                                    class="fa-solid fa-grip-vertical"></i></button>
+                            <button class="view-btn" id="btnViewList" onclick="setExplorerViewMode('list')"><i
+                                    class="fa-solid fa-list-ul"></i></button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 网格视图容器 -->
+                <div class="file-grid" id="fileGridContainer"></div>
+
+                <!-- 列表视图容器 -->
+                <div class="file-table-container" id="fileTableContainer">
+                    <table class="file-table">
+                        <thead>
+                            <tr>
+                                <th style="width: 40px;"></th>
+                                <th>名称</th>
+                                <th>大小</th>
+                                <th>修改日期</th>
+                                <th>状态/密码</th>
+                                <th style="text-align: right;">操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="fileTableBody"></tbody>
+                    </table>
+                </div>
+
+            </div>
+
+            <!-- 视图 2: 链接与直链解析 Parser -->
+            <div class="view-section" id="tab-parse">
+                <div class="parser-hero">
+                    <h2>免登录高速直链提取</h2>
+                    <p style="color: var(--text-secondary); font-size: 0.95rem;">粘贴蓝奏云文件或文件夹分享链接，瞬间一键提取真实高速下载直链</p>
+
+                    <div class="parser-input-group">
+                        <input type="text" id="parseUrlInput" class="form-control"
+                            placeholder="粘贴蓝奏云分享链接 (如 https://pan.lanzouo.com/ixxxxxx)">
+                        <input type="text" id="parsePwdInput" class="form-control" style="width: 120px;"
+                            placeholder="提取码">
+                        <button class="btn btn-cyan" onclick="startParseLink()"><i class="fa-solid fa-bolt"></i>
+                            立即解析</button>
+                    </div>
+                </div>
+
+                <!-- 解析结果卡片 -->
+                <div class="result-card" id="parseResultCard">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div class="icon-box zip" id="resIconBox"
+                            style="width: 54px; height: 54px; font-size: 1.8rem; background: rgba(99, 102, 241, 0.15); color: var(--accent-primary); border-radius: 12px; display: flex; align-items: center; justify-content: center;">
+                            <i class="fa-solid fa-file-zipper" id="resIcon"></i>
+                        </div>
+                        <div>
+                            <h3 id="resFileName" style="font-size: 1.1rem; font-weight: 800;">文件名.zip</h3>
+                            <p id="resFileMeta" style="font-size: 0.85rem; color: var(--text-muted);">大小: - | 上传时间: -
+                            </p>
+                        </div>
+                    </div>
+                    <div class="form-group" id="resUrlGroup">
+                        <label>高速直链真实 URL</label>
+                        <input type="text" id="resDirectUrl" class="form-control" readonly>
+                    </div>
+
+                    <!-- 步骤条实时下载与自动销毁进度面板 -->
+                    <div id="bigFileDownloadProgressWrap" style="display: none; margin-top: 1.25rem; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; padding: 1.25rem; backdrop-filter: blur(12px);">
+                        <!-- 步骤条 Status Badges -->
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.2rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 0.85rem;">
+                            <div id="dlStep1" style="display: flex; align-items: center; gap: 0.5rem; color: var(--accent-cyan); font-weight: 700; font-size: 0.85rem; transition: all 0.3s ease;">
+                                <span style="width: 26px; height: 26px; border-radius: 50%; background: var(--accent-cyan); color: #000; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;" id="dlStepBadge1">1</span>
+                                <span>分段文件下载</span>
+                            </div>
+                            <div style="flex: 1; height: 2px; background: rgba(255, 255, 255, 0.1); margin: 0 0.75rem; transition: background 0.3s ease;" id="dlStepLine1"></div>
+                            <div id="dlStep2" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease;">
+                                <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;" id="dlStepBadge2">2</span>
+                                <span>服务器合并校验</span>
+                            </div>
+                            <div style="flex: 1; height: 2px; background: rgba(255, 255, 255, 0.1); margin: 0 0.75rem; transition: background 0.3s ease;" id="dlStepLine2"></div>
+                            <div id="dlStep3" style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-weight: 600; font-size: 0.85rem; transition: all 0.3s ease;">
+                                <span style="width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, 0.15); color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 800;" id="dlStepBadge3">3</span>
+                                <span>开始下载与销毁</span>
+                            </div>
+                        </div>
+
+                        <!-- 步骤 1: 每段分段文件下载进度 + 总体进度 -->
+                        <div id="dlStep1Detail" style="margin-bottom: 0.75rem;">
+                            <!-- 当前单个切片下载进度 -->
+                            <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.35rem;">
+                                <span style="font-weight: 700; color: var(--accent-cyan);" id="step1PartInfo"><i class="fa-solid fa-cloud-arrow-down"></i> 当前切片: 正在准备数据连接...</span>
+                                <span style="font-weight: 600; color: var(--text-secondary);" id="step1PartVal">0 MB / 0 MB (0%)</span>
+                            </div>
+                            <div class="progress-bar-wrap" style="display: block; margin-top: 0; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); margin-bottom: 0.85rem;">
+                                <div class="progress-bar-fill" id="step1PartFill" style="width: 0%; background: linear-gradient(90deg, #06b6d4, #3b82f6); border-radius: 3px; transition: width 0.15s ease;"></div>
+                            </div>
+
+                            <!-- 累计整体切片合并下载进度 -->
+                            <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 0.35rem;">
+                                <span style="font-weight: 700; color: var(--accent-emerald);"><i class="fa-solid fa-layer-group"></i> 总体分片累计进度</span>
+                                <span style="font-weight: 600; color: #fff;" id="bigFileDownloadValue">0 MB / 0 MB (0%)</span>
+                            </div>
+                            <div class="progress-bar-wrap" style="display: block; margin-top: 0; height: 10px; border-radius: 5px;">
+                                <div class="progress-bar-fill" id="bigFileDownloadFill" style="width: 0%; background: linear-gradient(90deg, #10b981, #06b6d4); border-radius: 5px; transition: width 0.15s ease;"></div>
+                            </div>
+                        </div>
+
+                        <!-- 步骤 2: 合并情况 -->
+                        <div id="dlStep2Detail" style="display: none; background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.25); border-radius: 10px; padding: 0.85rem; margin-bottom: 0.75rem; font-size: 0.85rem; color: #e2e8f0;">
+                            <i class="fa-solid fa-gears fa-spin" style="color: var(--accent-emerald); margin-right: 0.5rem; font-size: 1rem;"></i>
+                            <span id="step2Text">所有分段数据已全量中转传输完成，服务器正在无缝合并拼接文件并校验还原...</span>
+                        </div>
+
+                        <!-- 步骤 3: 开始下载与中转自动销毁 -->
+                        <div id="dlStep3Detail" style="display: none; background: rgba(6, 182, 212, 0.1); border: 1px solid rgba(6, 182, 212, 0.25); border-radius: 10px; padding: 0.85rem; font-size: 0.85rem; color: #e2e8f0;">
+                            <i class="fa-solid fa-circle-check" style="color: var(--accent-cyan); margin-right: 0.5rem; font-size: 1rem;"></i>
+                            <span id="step3Text">文件已成功推送至您的浏览器开始保存，服务器中转临时缓存文件已立即自动销毁！</span>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 0.75rem; margin-top: 1rem; flex-wrap: wrap;" id="resActionsGroup">
+                        <a id="downloadDirectBtn" href="#" target="_blank" class="btn btn-primary"><i
+                                class="fa-solid fa-download"></i> 立即下载文件</a>
+                        <button id="downloadBigBtn" style="display: none;" class="btn btn-emerald" onclick="triggerDownloadBigFolder()"><i class="fa-solid fa-file-zipper"></i> 开启分片合并下载 (带实时进度+自动销毁)</button>
+                        <button id="copyDirectBtn" class="btn btn-secondary" onclick="copyDirectUrl()"><i class="fa-regular fa-copy"></i>
+                            复制直链地址</button>
+                    </div>
+
+                    <!-- 文件夹内部文件列表展示容器 -->
+                    <div id="parsedFolderFilesContainer" style="display: none; margin-top: 1.5rem; border-top: 1px solid var(--card-border); padding-top: 1rem;">
+                        <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 0.75rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+                            <i class="fa-solid fa-folder-tree" style="color: var(--accent-amber);"></i> 文件夹文件列表
+                        </h4>
+                        <div style="max-height: 320px; overflow-y: auto; background: rgba(15, 23, 42, 0.6); border-radius: 12px; border: 1px solid var(--card-border);">
+                            <table class="file-table" style="font-size: 0.82rem;">
+                                <thead>
+                                    <tr>
+                                        <th>文件名</th>
+                                        <th>大小</th>
+                                        <th>修改时间</th>
+                                        <th style="text-align: right;">操作</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="parsedFolderFilesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 视图 3: 文件上传 Upload -->
+            <div class="view-section" id="tab-upload">
+                <div style="max-width: 700px; margin: 0 auto;">
+                    <div style="margin-bottom: 1.5rem;">
+                        <h2 style="font-size: 1.35rem; font-weight: 800; margin-bottom: 0.4rem;">上传文件至网盘</h2>
+                        <p style="color: var(--text-secondary); font-size: 0.88rem;">支持拖拽上传。超过 100MB 自动启动无缝切片块分段上传机制</p>
+                    </div>
+
+                    <div class="drag-box" id="uploadDragArea"
+                        onclick="document.getElementById('fileSelectInput').click()">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <h3 style="font-size: 1.1rem; font-weight: 700;" id="uploadBoxTitle">点击选择文件 或 将文件拖拽至此处</h3>
+                        <p style="font-size: 0.85rem; color: var(--text-muted); margin-top: 0.5rem;"
+                            id="uploadBoxSubtitle">单文件无上限 (支持自动分卷切片)</p>
+                        <input type="file" id="fileSelectInput" style="display: none;"
+                            onchange="handleFileSelected(this.files[0])">
+                    </div>
+
+                    <div class="progress-bar-wrap" id="uploadProgressWrap">
+                        <div class="progress-bar-fill" id="uploadProgressFill"></div>
+                    </div>
+                    <p style="font-size: 0.8rem; text-align: center; color: var(--text-secondary); margin-top: 0.5rem; display: none;"
+                        id="uploadProgressText">0%</p>
+
+                    <div
+                        style="margin-top: 1.5rem; background: var(--card-bg); padding: 1.5rem; border-radius: 16px; border: 1px solid var(--card-border);">
+                        <div class="form-group">
+                            <label>目标保存目录</label>
+                            <input type="text" id="uploadTargetFolderName" class="form-control"
+                                placeholder="留空默认上传至当前目录">
+                        </div>
+                        <div class="form-group">
+                            <label>单文件切片阈值 (网络较慢或不稳定建议选择 50MB 或 30MB)</label>
+                            <select id="uploadMaxSizeMB" class="form-control">
+                                <option value="100">100 MB (默认标准切片)</option>
+                                <option value="50" selected>50 MB (推荐/网络较慢首选)</option>
+                                <option value="30">30 MB (小分片/弱网极速首选)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>设置访问提取码 (可选)</label>
+                            <input type="text" id="uploadPasscode" class="form-control" placeholder="2-6 位数字或字母密码">
+                        </div>
+                        <div class="form-group">
+                            <label>设置文件描述 (可选)</label>
+                            <input type="text" id="uploadDescription" class="form-control" placeholder="请输入文件备注说明">
+                        </div>
+
+                        <button class="btn btn-primary" style="width: 100%; margin-top: 0.5rem;"
+                            onclick="submitUpload()"><i class="fa-solid fa-paper-plane"></i> 确认开始上传</button>
+                    </div>
+
+                    <!-- 内嵌极速上传实时过程与分片监控面板 (直接在上传菜单下显示) -->
+                    <div id="inlineUploadProgressCard"
+                        style="display: none; margin-top: 1.5rem; background: rgba(15, 23, 42, 0.95); border: 1px solid var(--accent-primary); border-radius: 18px; padding: 1.5rem; backdrop-filter: blur(16px); box-shadow: 0 10px 30px rgba(0,0,0,0.5);">
+                        <div
+                            style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; border-bottom: 1px solid var(--card-border); padding-bottom: 0.75rem;">
+                            <h4
+                                style="font-size: 1.05rem; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 0.6rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 75%;">
+                                <i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-cyan);"></i>
+                                <span id="inlineUploadTitleText">正在准备上传...</span>
+                            </h4>
+                            <span id="inlineUploadBadge"
+                                style="background: rgba(99, 102, 241, 0.2); color: var(--accent-primary); font-size: 0.78rem; font-weight: 700; padding: 0.35rem 0.85rem; border-radius: 20px;">
+                                <i class="fa-solid fa-spinner fa-spin"></i> 处理中
+                            </span>
+                        </div>
+
+                        <!-- 进度条 1: 大文件总体传输进度 (统筹总进度) -->
+                        <div id="totalProgressContainer" style="margin-bottom: 1.1rem; display: none;">
+                            <div
+                                style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 0.4rem;">
+                                <span style="font-weight: 700; color: var(--accent-primary);"><i
+                                        class="fa-solid fa-chart-pie"></i> 大文件总体传输进度</span>
+                                <span style="font-weight: 600; color: #fff;" id="totalProgressValue">0 MB / 0 MB
+                                    (0%)</span>
+                            </div>
+                            <div class="progress-bar-wrap"
+                                style="display: block; margin-top: 0; height: 10px; border-radius: 5px;">
+                                <div class="progress-bar-fill" id="totalProgressFill"
+                                    style="width: 0%; background: linear-gradient(90deg, var(--accent-primary), var(--accent-cyan)); border-radius: 5px;">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 进度条 2: 并发传输通道独立监控面板 (支持多通道单独进度条) -->
+                        <div id="channelsProgressContainer"
+                            style="display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.25rem;">
+                            <div id="singleChunkProgressWrap" style="margin-bottom: 0;">
+                                <div
+                                    style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 0.4rem;">
+                                    <span style="font-weight: 700; color: var(--accent-cyan);"
+                                        id="chunkProgressLabel"><i class="fa-solid fa-server"></i> 单文件传输进度</span>
+                                    <span style="font-weight: 600; color: #fff;" id="chunkProgressValue">0 MB / 0 MB
+                                        (0%)</span>
+                                </div>
+                                <div class="progress-bar-wrap"
+                                    style="display: block; margin-top: 0; height: 8px; border-radius: 4px;">
+                                    <div class="progress-bar-fill" id="chunkProgressFill"
+                                        style="width: 0%; background: linear-gradient(90deg, #06b6d4, #3b82f6); border-radius: 4px;">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 实时阶段步骤日志列表面板 -->
+                        <div
+                            style="background: rgba(3, 7, 18, 0.7); border: 1px solid var(--card-border); border-radius: 12px; padding: 0.85rem; max-height: 180px; overflow-y: auto;">
+                            <div
+                                style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; letter-spacing: 0.05em; display: flex; justify-content: space-between; align-items: center;">
+                                <span><i class="fa-solid fa-list-check"></i> 步骤与阶段回调日志</span>
+                                <span style="font-size: 0.7rem; color: var(--text-muted);"
+                                    id="inlineStepTime">实时更新</span>
+                            </div>
+                            <div id="inlineStepLogsContainer"
+                                style="display: flex; flex-direction: column; gap: 0.45rem; font-size: 0.82rem;">
+                                <div style="color: var(--text-muted); text-align: center; padding: 0.5rem;"><i
+                                        class="fa-solid fa-spinner fa-spin"></i> 任务启动中...</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- 批量操作工具条 Batch Bar -->
+    <div class="batch-bar" id="batchBar">
+        <span style="font-size: 0.9rem; font-weight: 700;" id="batchCountText">已选中 0 个项目</span>
+        <div style="display: flex; gap: 0.5rem;">
+            <button class="btn btn-danger btn-sm" onclick="batchDelete()"><i class="fa-solid fa-trash"></i>
+                批量删除</button>
+            <button class="btn btn-secondary btn-sm" onclick="clearSelection()"><i class="fa-solid fa-xmark"></i>
+                取消选择</button>
+        </div>
+    </div>
+
+    <!-- 弹窗 1: 账号登录 Modal -->
+    <div class="modal-overlay" id="loginModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-user-lock" style="color: var(--accent-primary);"></i> 蓝奏云账号登录</h3>
+                <button class="close-modal" onclick="closeModal('loginModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>蓝奏云账号 / 注册手机号</label>
+                <input type="text" id="modalUsername" class="form-control" placeholder="请输入手机号/账号">
+            </div>
+            <div class="form-group">
+                <label>登录密码</label>
+                <input type="password" id="modalPassword" class="form-control" placeholder="请输入密码">
+            </div>
+
+            <!-- 高级凭证折叠区 -->
+            <div style="margin-top: 0.75rem;">
+                <span onclick="toggleAdvancedCookie()"
+                    style="font-size: 0.78rem; color: var(--accent-cyan); cursor: pointer; user-select: none;">
+                    <i class="fa-solid fa-gear"></i> 高级模式：手动输入 Cookie (可选) <i class="fa-solid fa-chevron-down"
+                        id="advCookieIcon"></i>
+                </span>
+                <div id="advCookieArea" style="display: none; margin-top: 0.5rem;">
+                    <input type="text" id="modalCookieInput" class="form-control"
+                        placeholder="ylogin=xxx; phpdisk_info=xxx">
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="doSubmitLogin()"><i
+                        class="fa-solid fa-right-to-bracket"></i> 登录并自动获取凭证</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗 2: 新建文件夹 Modal -->
+    <div class="modal-overlay" id="mkdirModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-folder-plus" style="color: var(--accent-amber);"></i> 新建文件夹</h3>
+                <button class="close-modal" onclick="closeModal('mkdirModal')">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>文件夹名称</label>
+                <input type="text" id="newFolderName" class="form-control" placeholder="例如：学习资料">
+            </div>
+            <div class="form-group">
+                <label>文件夹描述 (可选)</label>
+                <input type="text" id="newFolderDesc" class="form-control" placeholder="请输入文件夹备注">
+            </div>
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="doSubmitMkdir()"><i
+                        class="fa-solid fa-check"></i> 立即创建</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗 3: 属性修改 Modal -->
+    <div class="modal-overlay" id="editModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="editModalTitle"><i class="fa-solid fa-pen-to-square"></i> 修改属性</h3>
+                <button class="close-modal" onclick="closeModal('editModal')">&times;</button>
+            </div>
+            <input type="hidden" id="editTargetId">
+            <input type="hidden" id="editTargetType">
+            <input type="hidden" id="editActionType">
+
+            <div class="form-group">
+                <label id="editModalLabel">请输入新参数</label>
+                <input type="text" id="editModalInput" class="form-control">
+            </div>
+
+            <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                <button class="btn btn-primary" style="flex: 1;" onclick="doSubmitEdit()"><i
+                        class="fa-solid fa-check"></i> 保存修改</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 弹窗 4: 分享/二维码 Modal -->
+    <div class="modal-overlay" id="shareModal">
+        <div class="modal-card" style="text-align: center;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-share-nodes" style="color: var(--accent-cyan);"></i> 文件分享详情</h3>
+                <button class="close-modal" onclick="closeModal('shareModal')">&times;</button>
+            </div>
+
+            <div class="qr-box">
+                <img id="shareQrImg" src="" alt="二维码">
+            </div>
+
+            <div class="form-group" style="text-align: left; margin-top: 1rem;">
+                <label>分享链接</label>
+                <input type="text" id="shareUrlInput" class="form-control" readonly>
+            </div>
+
+            <div class="form-group" style="text-align: left;">
+                <label>提取密码</label>
+                <input type="text" id="sharePwdInput" class="form-control" readonly>
+            </div>
+
+            <button class="btn btn-primary" style="width: 100%; margin-top: 1rem;" onclick="copyShareText()"><i
+                    class="fa-regular fa-copy"></i> 复制完整分享信息</button>
+        </div>
+    </div>
+
+    <!-- 弹窗 5: 自定义 Confirm 对话框 Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="confirmTitle"><i class="fa-solid fa-triangle-exclamation"
+                        style="color: var(--accent-amber);"></i> 操作确认</h3>
+                <button class="close-modal" onclick="resolveConfirm(false)">&times;</button>
+            </div>
+            <p style="color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem;" id="confirmMessage">
+                确定要执行此操作吗？</p>
+            <div style="display: flex; gap: 0.75rem;">
+                <button class="btn btn-secondary" style="flex: 1;" onclick="resolveConfirm(false)">取消</button>
+                <button class="btn btn-danger" style="flex: 1;" onclick="resolveConfirm(true)">确定</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- 全局状态 ---
+        let currentFolderId = -1;
+        let currentFolderName = '根目录';
+        let userCookieStr = localStorage.getItem('lanzou_cookie_str') || '';
+        let selectedUploadFile = null;
+        let currentExplorerData = { folders: [], files: [] };
+        let viewMode = localStorage.getItem('lanzou_view_mode') || 'grid';
+        let selectedItems = new Set();
+        let confirmResolver = null;
+        let folderBreadcrumbs = [{ id: -1, name: '根目录' }];
+
+        document.addEventListener('DOMContentLoaded', () => {
+            if (userCookieStr) {
+                updateUserUI(true, '凭证已激活');
+            }
+            setExplorerViewMode(viewMode);
+            loadFolder(-1, '根目录');
+        });
+
+        // --- Toast 消息提示组件 ---
+        function showToast(msg, type = 'info', duration = 3000) {
+            const container = document.getElementById('toastContainer');
+            const item = document.createElement('div');
+            item.className = `toast-item ${type}`;
+
+            let icon = 'fa-circle-info';
+            if (type === 'success') icon = 'fa-circle-check';
+            if (type === 'error') icon = 'fa-circle-xmark';
+            if (type === 'warning') icon = 'fa-triangle-exclamation';
+
+            item.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+            container.appendChild(item);
+
+            setTimeout(() => {
+                item.style.opacity = '0';
+                item.style.transform = 'translateX(30px)';
+                item.style.transition = 'all 0.3s';
+                setTimeout(() => item.remove(), 300);
+            }, duration);
+        }
+
+        // --- 自定义 Confirm 对话框 ---
+        function showConfirm(title, message) {
+            document.getElementById('confirmTitle').innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-amber);"></i> ${title}`;
+            document.getElementById('confirmMessage').textContent = message;
+            openModal('confirmModal');
+            return new Promise((resolve) => {
+                confirmResolver = resolve;
+            });
+        }
+
+        function resolveConfirm(result) {
+            closeModal('confirmModal');
+            if (confirmResolver) {
+                confirmResolver(result);
+                confirmResolver = null;
+            }
+        }
+
+        // --- 字符串安全转义工具 ---
+        function escapeHtml(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function escapeJsStr(str) {
+            if (str === null || str === undefined) return '';
+            return String(str)
+                .replace(/\\/g, '\\\\')
+                .replace(/'/g, "\\'")
+                .replace(/"/g, '\\"')
+                .replace(/\n/g, '\\n')
+                .replace(/\r/g, '\\r');
+        }
+
+        // --- 视图与导航 ---
+        function switchTab(tabId, btnElement) {
+            document.querySelectorAll('.view-section').forEach(sec => sec.classList.remove('active'));
+            document.querySelectorAll('.menu-item button').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabId).classList.add('active');
+            if (btnElement) {
+                btnElement.classList.add('active');
+            } else {
+                const menuBtns = document.querySelectorAll('.menu-list button');
+                if (tabId === 'tab-files' && menuBtns[0]) menuBtns[0].classList.add('active');
+                if (tabId === 'tab-parse' && menuBtns[1]) menuBtns[1].classList.add('active');
+                if (tabId === 'tab-upload' && menuBtns[2]) menuBtns[2].classList.add('active');
+            }
+
+            if (tabId === 'tab-files') {
+                if (currentExplorerData && (currentExplorerData.folders.length > 0 || currentExplorerData.files.length > 0)) {
+                    renderExplorerUI(currentExplorerData.folders, currentExplorerData.files);
+                } else {
+                    loadFolder(currentFolderId, currentFolderName);
+                }
+            }
+        }
+
+        function openModal(id) { document.getElementById(id).classList.add('active'); }
+        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+
+        function openLoginModal() { openModal('loginModal'); }
+        function openMkdirModal() { openModal('mkdirModal'); }
+
+        function toggleAdvancedCookie() {
+            const area = document.getElementById('advCookieArea');
+            const icon = document.getElementById('advCookieIcon');
+            if (area.style.display === 'none') {
+                area.style.display = 'block';
+                icon.className = 'fa-solid fa-chevron-up';
+            } else {
+                area.style.display = 'none';
+                icon.className = 'fa-solid fa-chevron-down';
+            }
+        }
+
+        function setExplorerViewMode(mode) {
+            viewMode = mode;
+            localStorage.setItem('lanzou_view_mode', mode);
+            const gridBtn = document.getElementById('btnViewGrid');
+            const listBtn = document.getElementById('btnViewList');
+            const gridWrap = document.getElementById('fileGridContainer');
+            const listWrap = document.getElementById('fileTableContainer');
+
+            if (mode === 'grid') {
+                gridBtn.classList.add('active');
+                listBtn.classList.remove('active');
+                gridWrap.style.display = 'grid';
+                listWrap.style.display = 'none';
+            } else {
+                listBtn.classList.add('active');
+                gridBtn.classList.remove('active');
+                gridWrap.style.display = 'none';
+                listWrap.style.display = 'block';
+            }
+        }
+
+        function updateUserUI(isLogged, text) {
+            const avatar = document.getElementById('userAvatar');
+            const title = document.getElementById('userNameDisplay');
+            const desc = document.getElementById('userStatusText');
+
+            if (isLogged) {
+                avatar.textContent = '云';
+                avatar.style.background = 'linear-gradient(135deg, var(--accent-emerald), var(--accent-cyan))';
+                title.textContent = '蓝奏云用户';
+                desc.textContent = text || '会话凭证已激活';
+            } else {
+                avatar.textContent = '客';
+                avatar.style.background = 'linear-gradient(135deg, var(--accent-primary), var(--accent-rose))';
+                title.textContent = '未登录';
+                desc.textContent = '游客访问模式';
+            }
+        }
+
+        // --- HTTP 请求工具 (POST 方法) ---
+        async function apiPost(action, data = {}) {
+            const formData = new URLSearchParams();
+            formData.append('action', action);
+            if (userCookieStr) {
+                formData.append('cookie', userCookieStr);
+            }
+            for (const key in data) {
+                formData.append(key, data[key]);
+            }
+
+            try {
+                const resp = await fetch(`./api.php?action=${encodeURIComponent(action)}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: formData.toString()
+                });
+                const rawText = (await resp.text()).trim();
+                if (!rawText) {
+                    return { code: -1, msg: '服务端未返回任何数据 (HTTP Status ' + resp.status + ')' };
+                }
+                const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                if (!jsonMatch) {
+                    return { code: -1, msg: '服务端响应格式非 JSON: ' + rawText.substring(0, 120) };
+                }
+                return JSON.parse(jsonMatch[0]);
+            } catch (e) {
+                return { code: -1, msg: '网络请求异常: ' + e.message };
+            }
+        }
+
+        // --- 账号登录 ---
+        async function doSubmitLogin() {
+            const user = document.getElementById('modalUsername').value.trim();
+            const pass = document.getElementById('modalPassword').value.trim();
+            const manualCookie = document.getElementById('modalCookieInput').value.trim();
+
+            if (manualCookie) {
+                userCookieStr = manualCookie;
+                localStorage.setItem('lanzou_cookie_str', userCookieStr);
+                updateUserUI(true, '手动 Cookie 凭证登录');
+                closeModal('loginModal');
+                showToast('已保存 Cookie 登录凭证！', 'success');
+                loadFolder(-1, '根目录');
+                return;
+            }
+
+            if (!user || !pass) {
+                showToast('请填写入蓝奏云账号与密码', 'warning');
+                return;
+            }
+
+            showToast('正在突破验证安全握手，请稍候...', 'info', 4000);
+            const res = await apiPost('login', { user, pass });
+            if (res.code === 0 && res.data && res.data.cookie_str) {
+                userCookieStr = res.data.cookie_str;
+                localStorage.setItem('lanzou_cookie_str', userCookieStr);
+                updateUserUI(true, '登录成功');
+                closeModal('loginModal');
+                showToast('登录成功！已安全获得 Cookie 凭证', 'success');
+                loadFolder(-1, '根目录');
+            } else {
+                showToast('登录失败: ' + (res.msg || '密码错误或触发二次验证'), 'error');
+            }
+        }
+
+        // --- 服务器 IP 风控/拉黑检测 ---
+        async function checkServerIpStatus() {
+            showToast('正在连通检测服务器出口 IP 在蓝奏云节点的拉黑与风控状态...', 'info', 4000);
+            const res = await apiPost('check_ip');
+            if (res.code === 0) {
+                showToast('✅ ' + (res.msg || '服务器 IP 状态良好，未被拉黑！'), 'success', 6000);
+            } else if (res.data && res.data.is_blocked) {
+                showToast('🚨 ' + (res.msg || '警告: 服务器 IP 已被蓝奏云官方封禁/拉黑！'), 'error', 9000);
+            } else {
+                showToast('⚠️ ' + (res.msg || '检测异常'), 'warning', 6000);
+            }
+        }
+
+        // --- 面包屑导航渲染 ---
+        function updateBreadcrumbs(folderId, folderName) {
+            const idx = folderBreadcrumbs.findIndex(b => b.id === folderId);
+            if (idx !== -1) {
+                folderBreadcrumbs = folderBreadcrumbs.slice(0, idx + 1);
+            } else {
+                folderBreadcrumbs.push({ id: folderId, name: folderName });
+            }
+
+            const nav = document.getElementById('breadcrumbNav');
+            nav.innerHTML = folderBreadcrumbs.map((b, i) => {
+                const isLast = i === folderBreadcrumbs.length - 1;
+                return `
+                    <span class="breadcrumb-item ${isLast ? 'active' : ''}" onclick="loadFolder(${b.id}, '${b.name}')">
+                        ${i === 0 ? '<i class="fa-solid fa-house"></i>' : ''} ${b.name}
+                    </span>
+                    ${!isLast ? '<i class="fa-solid fa-chevron-right" style="font-size: 0.75rem; opacity: 0.4;"></i>' : ''}
+                `;
+            }).join('');
+        }
+
+        // --- 加载文件与目录 ---
+        async function loadFolder(folderId = -1, folderName = '根目录') {
+            currentFolderId = folderId;
+            currentFolderName = folderName;
+            clearSelection();
+            updateBreadcrumbs(folderId, folderName);
+
+            document.getElementById('currentFolderTitle').textContent = folderName;
+            document.getElementById('fileCountBadge').textContent = '加载中...';
+
+            const gridContainer = document.getElementById('fileGridContainer');
+            const tableBody = document.getElementById('fileTableBody');
+
+            gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin fa-2x"></i><p style="margin-top: 0.5rem;">读取网盘数据中...</p></div>';
+            tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);"><i class="fa-solid fa-spinner fa-spin"></i> 读取中...</td></tr>';
+
+            const res = await apiPost('list_all', { folder_id: folderId });
+
+            if (res.code !== 0 || !res.data) {
+                gridContainer.innerHTML = `<div style="grid-column: 1/-1; text-align: center; padding: 3rem; color: var(--accent-rose);"><i class="fa-solid fa-triangle-exclamation fa-2x"></i><p style="margin-top: 0.5rem;">${res.msg || '请先登录关联蓝奏云账号'}</p></div>`;
+                tableBody.innerHTML = `<tr><td colspan="6" style="text-align: center; color: var(--accent-rose);">${res.msg || '未登录'}</td></tr>`;
+                document.getElementById('fileCountBadge').textContent = '未登录';
+                return;
+            }
+
+            currentExplorerData.folders = res.data.folders || [];
+            currentExplorerData.files = res.data.files || [];
+
+            renderExplorerUI(currentExplorerData.folders, currentExplorerData.files);
+        }
+
+        // --- 渲染 Explorer 视图 ---
+        function renderExplorerUI(folders, files) {
+            document.getElementById('fileCountBadge').textContent = `包含 ${folders.length} 个目录, ${files.length} 个文件`;
+
+            const gridContainer = document.getElementById('fileGridContainer');
+            const tableBody = document.getElementById('fileTableBody');
+
+            gridContainer.innerHTML = '';
+            tableBody.innerHTML = '';
+
+            // 1. 渲染文件夹
+            folders.forEach(f => {
+                const isSelected = selectedItems.has(`folder_${f.id}`);
+                const safeNameHtml = escapeHtml(f.name);
+                const safeNameJs = escapeJsStr(f.name);
+
+                // 网格卡片
+                const card = document.createElement('div');
+                card.className = `file-card ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectItem('folder', ${f.id})">
+                    <div style="display: flex; align-items: center; gap: 0.85rem; cursor: pointer;" onclick="loadFolder(${f.id}, '${safeNameJs}')">
+                        <div class="icon-box folder"><i class="fa-solid fa-folder"></i></div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div class="file-title" title="${safeNameHtml}">${safeNameHtml}</div>
+                            <div class="file-info"><span>${f.hasPwd ? '<font color="#f43f5e">[有密码]</font>' : '目录'}</span></div>
+                        </div>
+                    </div>
+                    <div class="action-menu">
+                        <button onclick="event.stopPropagation(); getShareDetail(${f.id}, 'folder')"><i class="fa-solid fa-share-nodes"></i> 分享</button>
+                        <button onclick="event.stopPropagation(); openEditModal(${f.id}, 'folder', 'set_passwd', '设置文件夹密码', '')"><i class="fa-solid fa-key"></i> 密码</button>
+                        <button onclick="event.stopPropagation(); openEditModal(${f.id}, 'folder', 'rename_dir', '重命名文件夹', '${safeNameJs}')"><i class="fa-solid fa-pen"></i> 重命名</button>
+                        <button onclick="event.stopPropagation(); deleteItem(${f.id}, 'folder')" style="color: var(--accent-rose);"><i class="fa-solid fa-trash"></i> 删除</button>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+
+                // 列表表格行
+                const tr = document.createElement('tr');
+                tr.className = isSelected ? 'selected' : '';
+                tr.innerHTML = `
+                    <td><input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleSelectItem('folder', ${f.id})"></td>
+                    <td style="cursor: pointer; font-weight: 700;" onclick="loadFolder(${f.id}, '${safeNameJs}')"><i class="fa-solid fa-folder" style="color: var(--accent-amber); margin-right: 0.5rem;"></i> ${safeNameHtml}</td>
+                    <td>--</td>
+                    <td>--</td>
+                    <td>${f.hasPwd ? '<span style="color: var(--accent-rose);">有密码</span>' : '无密码'}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary btn-sm" onclick="getShareDetail(${f.id}, 'folder')" title="分享"><i class="fa-solid fa-share-nodes"></i> 分享</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openEditModal(${f.id}, 'folder', 'set_passwd', '设置密码', '')" title="密码"><i class="fa-solid fa-key"></i> 密码</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openEditModal(${f.id}, 'folder', 'rename_dir', '重命名', '${safeNameJs}')" title="重命名"><i class="fa-solid fa-pen"></i> 重命名</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteItem(${f.id}, 'folder')" title="删除"><i class="fa-solid fa-trash"></i> 删除</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            // 2. 渲染文件
+            files.forEach(f => {
+                const isSelected = selectedItems.has(`file_${f.id}`);
+                const safeNameHtml = escapeHtml(f.name);
+                const safeNameJs = escapeJsStr(f.name);
+                let iconClass = 'zip';
+                let iconFa = 'fa-file-zipper';
+                const ext = (f.type || '').toLowerCase();
+                if (['pdf', 'doc', 'docx', 'txt'].includes(ext)) { iconClass = 'pdf'; iconFa = 'fa-file-lines'; }
+                if (['mp3', 'flac', 'mp4', 'mkv'].includes(ext)) { iconClass = 'media'; iconFa = 'fa-file-audio'; }
+                if (['exe', 'apk', 'deb', 'dmg'].includes(ext)) { iconClass = 'code'; iconFa = 'fa-cubes'; }
+
+                // 网格卡片
+                const card = document.createElement('div');
+                card.className = `file-card ${isSelected ? 'selected' : ''}`;
+                card.innerHTML = `
+                    <input type="checkbox" class="card-checkbox" ${isSelected ? 'checked' : ''} onclick="event.stopPropagation(); toggleSelectItem('file', ${f.id})">
+                    <div style="display: flex; align-items: center; gap: 0.85rem;">
+                        <div class="icon-box ${iconClass}"><i class="fa-solid ${iconFa}"></i></div>
+                        <div style="flex: 1; overflow: hidden;">
+                            <div class="file-title" title="${safeNameHtml}">${safeNameHtml}</div>
+                            <div class="file-info">
+                                <span>${escapeHtml(f.size)}</span>
+                                <span>${escapeHtml(f.time)}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-menu">
+                        <button onclick="getShareDetail(${f.id}, 'file')"><i class="fa-solid fa-share-nodes"></i> 分享</button>
+                        <button onclick="openEditModal(${f.id}, 'file', 'set_passwd', '设置文件密码', '')"><i class="fa-solid fa-lock"></i> 密码</button>
+                        <button onclick="deleteItem(${f.id}, 'file')" style="color: var(--accent-rose);"><i class="fa-solid fa-trash"></i> 删除</button>
+                    </div>
+                `;
+                gridContainer.appendChild(card);
+
+                // 列表表格行
+                const tr = document.createElement('tr');
+                tr.className = isSelected ? 'selected' : '';
+                tr.innerHTML = `
+                    <td><input type="checkbox" ${isSelected ? 'checked' : ''} onclick="toggleSelectItem('file', ${f.id})"></td>
+                    <td style="font-weight: 600;"><i class="fa-solid ${iconFa}" style="margin-right: 0.5rem; color: var(--accent-cyan);"></i> ${safeNameHtml}</td>
+                    <td>${escapeHtml(f.size)}</td>
+                    <td>${escapeHtml(f.time)}</td>
+                    <td>${f.hasPwd ? '<span style="color: var(--accent-rose);">有密码</span>' : '公开'}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary btn-sm" onclick="getShareDetail(${f.id}, 'file')" title="分享"><i class="fa-solid fa-share-nodes"></i> 分享</button>
+                        <button class="btn btn-secondary btn-sm" onclick="openEditModal(${f.id}, 'file', 'set_passwd', '设置密码', '')" title="密码"><i class="fa-solid fa-lock"></i> 密码</button>
+                        <button class="btn btn-danger btn-sm" onclick="deleteItem(${f.id}, 'file')" title="删除"><i class="fa-solid fa-trash"></i> 删除</button>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+
+            if (folders.length === 0 && files.length === 0) {
+                gridContainer.innerHTML = '<div style="grid-column: 1/-1; text-align: center; padding: 4rem; color: var(--text-muted);"><i class="fa-solid fa-box-open fa-3x"></i><p style="margin-top: 0.75rem;">该目录下暂无任何内容</p></div>';
+                tableBody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">暂无任何文件或文件夹</td></tr>';
+            }
+        }
+
+        // --- 前端搜索筛选 ---
+        function onSearchFilter(keyword) {
+            keyword = keyword.trim().toLowerCase();
+            if (!keyword) {
+                renderExplorerUI(currentExplorerData.folders, currentExplorerData.files);
+                return;
+            }
+            const filteredFolders = currentExplorerData.folders.filter(f => f.name.toLowerCase().includes(keyword));
+            const filteredFiles = currentExplorerData.files.filter(f => f.name.toLowerCase().includes(keyword));
+            renderExplorerUI(filteredFolders, filteredFiles);
+        }
+
+        // --- 批量选择逻辑 ---
+        function toggleSelectItem(type, id) {
+            const key = `${type}_${id}`;
+            if (selectedItems.has(key)) selectedItems.delete(key);
+            else selectedItems.add(key);
+
+            updateBatchBar();
+            renderExplorerUI(currentExplorerData.folders, currentExplorerData.files);
+        }
+
+        function toggleSelectAll(checked) {
+            if (checked) {
+                currentExplorerData.folders.forEach(f => selectedItems.add(`folder_${f.id}`));
+                currentExplorerData.files.forEach(f => selectedItems.add(`file_${f.id}`));
+            } else {
+                selectedItems.clear();
+            }
+            updateBatchBar();
+            renderExplorerUI(currentExplorerData.folders, currentExplorerData.files);
+        }
+
+        function clearSelection() {
+            selectedItems.clear();
+            document.getElementById('selectAllCheckbox').checked = false;
+            updateBatchBar();
+        }
+
+        function updateBatchBar() {
+            const bar = document.getElementById('batchBar');
+            const countText = document.getElementById('batchCountText');
+            if (selectedItems.size > 0) {
+                countText.textContent = `已选中 ${selectedItems.size} 个项目`;
+                bar.classList.add('active');
+            } else {
+                bar.classList.remove('active');
+            }
+        }
+
+        async function batchDelete() {
+            if (selectedItems.size === 0) return;
+            const confirmed = await showConfirm('批量删除确认', `确定要将选中的 ${selectedItems.size} 个项目移入回收站吗？`);
+            if (!confirmed) return;
+
+            showToast('正在处理批量删除...', 'info');
+            let successCount = 0;
+
+            for (const key of Array.from(selectedItems)) {
+                const [type, id] = key.split('_');
+                const data = { type };
+                if (type === 'file') data.file_id = id;
+                else data.folder_id = id;
+
+                const res = await apiPost('delete', data);
+                if (res.code === 0) successCount++;
+            }
+
+            showToast(`成功删除 ${successCount} 个项目`, 'success');
+            loadFolder(currentFolderId, currentFolderName);
+        }
+
+        // --- 新建文件夹 ---
+        async function doSubmitMkdir() {
+            const folder_name = document.getElementById('newFolderName').value.trim();
+            const desc = document.getElementById('newFolderDesc').value.trim();
+            if (!folder_name) { showToast('请输入文件夹名称', 'warning'); return; }
+
+            const res = await apiPost('mkdir', { folder_name, folder_id: currentFolderId, desc });
+            if (res.code === 0) {
+                closeModal('mkdirModal');
+                showToast(`文件夹 "${folder_name}" 创建成功`, 'success');
+                loadFolder(currentFolderId, currentFolderName);
+            } else {
+                showToast('创建失败: ' + res.msg, 'error');
+            }
+        }
+
+        // --- 免登录解析直链与大文件目录自动合并下载 ---
+        let currentParsedFolderUrl = '';
+        let currentParsedPwd = '';
+
+        function setParsedIcon(typeStr = 'zip') {
+            const iconBox = document.getElementById('resIconBox');
+            const iconFa = document.getElementById('resIcon');
+            if (!iconBox || !iconFa) return;
+
+            iconBox.className = 'icon-box ' + typeStr;
+            let faClass = 'fa-file-zipper';
+            if (typeStr === 'folder') faClass = 'fa-folder-open';
+            else if (typeStr === 'pdf') faClass = 'fa-file-lines';
+            else if (typeStr === 'media') faClass = 'fa-file-audio';
+            else if (typeStr === 'code') faClass = 'fa-cubes';
+            iconFa.className = 'fa-solid ' + faClass;
+        }
+
+        function renderParsedFolderFiles(files) {
+            const container = document.getElementById('parsedFolderFilesContainer');
+            const body = document.getElementById('parsedFolderFilesBody');
+            if (!container || !body) return;
+
+            if (!files || files.length === 0) {
+                container.style.display = 'none';
+                body.innerHTML = '';
+                return;
+            }
+
+            container.style.display = 'block';
+            body.innerHTML = '';
+            files.forEach(f => {
+                const tr = document.createElement('tr');
+                const isRecord = f.name.includes('record') && f.name.endsWith('.txt');
+                tr.innerHTML = `
+                    <td style="font-weight: 600;">
+                        <i class="fa-solid ${isRecord ? 'fa-file-code' : 'fa-file'}" style="margin-right: 0.4rem; color: ${isRecord ? 'var(--accent-amber)' : 'var(--accent-cyan)'};"></i>
+                        ${f.name}
+                    </td>
+                    <td>${f.size || '--'}</td>
+                    <td>${f.time || '--'}</td>
+                    <td style="text-align: right;">
+                        <button class="btn btn-secondary btn-sm" onclick="parseSubFile('${f.url}')"><i class="fa-solid fa-bolt"></i> 解析此文件</button>
+                    </td>
+                `;
+                body.appendChild(tr);
+            });
+        }
+
+        function parseSubFile(subUrl) {
+            if (!subUrl) return;
+            document.getElementById('parseUrlInput').value = subUrl;
+            startParseLink();
+        }
+
+        async function startParseLink() {
+            const url = document.getElementById('parseUrlInput').value.trim();
+            const pwd = document.getElementById('parsePwdInput').value.trim();
+            if (!url) { showToast('请输入分享链接', 'warning'); return; }
+
+            currentParsedFolderUrl = url;
+            currentParsedPwd = pwd;
+
+            showToast('正在解析链接...', 'info');
+            const card = document.getElementById('parseResultCard');
+            const directBtn = document.getElementById('downloadDirectBtn');
+            const bigBtn = document.getElementById('downloadBigBtn');
+            const copyBtn = document.getElementById('copyDirectBtn');
+            const urlGroup = document.getElementById('resUrlGroup');
+            const dlProgressWrap = document.getElementById('bigFileDownloadProgressWrap');
+
+            if (dlProgressWrap) dlProgressWrap.style.display = 'none';
+            renderParsedFolderFiles([]); // 重置文件夹文件列表
+
+            // 1. 优先尝试单文件直链解析
+            const res = await apiPost('parse_file', { url, pwd });
+            if (res.code === 0 && res.data) {
+                card.style.display = 'block';
+                if (res.data.is_big_file) {
+                    // 识别为切片大文件
+                    setParsedIcon('folder');
+                    if (urlGroup) urlGroup.style.display = 'none';
+                    if (directBtn) directBtn.style.display = 'none';
+                    if (copyBtn) copyBtn.style.display = 'none';
+                    if (bigBtn) bigBtn.style.display = 'inline-flex';
+
+                    document.getElementById('resFileName').textContent = `切片大文件: ${res.data.name}`;
+                    document.getElementById('resFileMeta').textContent = `大小: ${res.data.size} | 自动识别为分包切片，支持流式传输至本地并自动销毁中转缓存`;
+                    if (res.data.files) renderParsedFolderFiles(res.data.files);
+                    showToast('智能识别为切片合并大文件！', 'success');
+                } else {
+                    // 普通单文件
+                    setParsedIcon('zip');
+                    if (urlGroup) urlGroup.style.display = 'block';
+                    if (directBtn) directBtn.style.display = 'inline-flex';
+                    if (copyBtn) copyBtn.style.display = 'inline-flex';
+                    if (bigBtn) bigBtn.style.display = 'none';
+
+                    document.getElementById('resFileName').textContent = res.data.name;
+                    document.getElementById('resFileMeta').textContent = `大小: ${res.data.size} | 时间: ${res.data.time}`;
+                    document.getElementById('resDirectUrl').value = res.data.durl;
+                    if (directBtn) directBtn.href = res.data.durl;
+                    showToast('单文件直链解析成功！', 'success');
+                }
+                return;
+            }
+
+            // 2. 单文件解析失败，尝试文件夹解析
+            const folderRes = await apiPost('parse_folder', { url, pwd });
+            if (folderRes.code === 0 && folderRes.data) {
+                const folder = folderRes.data.folder;
+                const files = folderRes.data.files || [];
+                const isBigFileDir = files.some(f => f.name.includes('record') && f.name.endsWith('.txt'));
+
+                card.style.display = 'block';
+                setParsedIcon('folder');
+                if (urlGroup) urlGroup.style.display = 'none';
+                if (directBtn) directBtn.style.display = 'none';
+                if (copyBtn) copyBtn.style.display = 'none';
+
+                if (isBigFileDir) {
+                    if (bigBtn) bigBtn.style.display = 'inline-flex';
+                    document.getElementById('resFileName').textContent = `专属大文件目录: ${folder ? folder.name : '大文件'}`;
+                    document.getElementById('resFileMeta').textContent = `智能检测到大文件切片包！支持中转合成分片并直接下载至本地`;
+                    showToast('检测到大文件分片专属目录！', 'success');
+                } else {
+                    if (bigBtn) bigBtn.style.display = 'none';
+                    document.getElementById('resFileName').textContent = `文件夹: ${folder ? folder.name : '分享目录'}`;
+                    document.getElementById('resFileMeta').textContent = `包含 ${files.length} 个文件`;
+                    showToast('文件夹解析成功！', 'success');
+                }
+                renderParsedFolderFiles(files);
+            } else {
+                // 优先使用 folderRes.msg（如果是密码错误等特定原因），否则退回 res.msg
+                const errorMsg = (folderRes && folderRes.msg && folderRes.msg !== '未知错误') 
+                    ? folderRes.msg 
+                    : (res ? res.msg : '提取码错误或链接失效');
+                showToast('解析失败: ' + errorMsg, 'error');
+            }
+        }
+
+        function updateDlStepUI(stepNum) {
+            const s1 = document.getElementById('dlStep1');
+            const s2 = document.getElementById('dlStep2');
+            const s3 = document.getElementById('dlStep3');
+            const b1 = document.getElementById('dlStepBadge1');
+            const b2 = document.getElementById('dlStepBadge2');
+            const b3 = document.getElementById('dlStepBadge3');
+            const l1 = document.getElementById('dlStepLine1');
+            const l2 = document.getElementById('dlStepLine2');
+            const d2 = document.getElementById('dlStep2Detail');
+            const d3 = document.getElementById('dlStep3Detail');
+
+            if (stepNum === 1) {
+                if (s1) s1.style.color = 'var(--accent-cyan)';
+                if (b1) { b1.style.background = 'var(--accent-cyan)'; b1.style.color = '#000'; }
+                if (s2) s2.style.color = 'var(--text-muted)';
+                if (b2) { b2.style.background = 'rgba(255, 255, 255, 0.15)'; b2.style.color = '#fff'; }
+                if (s3) s3.style.color = 'var(--text-muted)';
+                if (b3) { b3.style.background = 'rgba(255, 255, 255, 0.15)'; b3.style.color = '#fff'; }
+
+                if (l1) l1.style.background = 'rgba(255, 255, 255, 0.1)';
+                if (l2) l2.style.background = 'rgba(255, 255, 255, 0.1)';
+
+                if (d2) d2.style.display = 'none';
+                if (d3) d3.style.display = 'none';
+            } else if (stepNum === 2) {
+                if (s1) s1.style.color = 'var(--accent-emerald)';
+                if (b1) { b1.style.background = 'var(--accent-emerald)'; b1.style.color = '#000'; }
+                if (s2) s2.style.color = 'var(--accent-emerald)';
+                if (b2) { b2.style.background = 'var(--accent-emerald)'; b2.style.color = '#000'; }
+                if (s3) s3.style.color = 'var(--text-muted)';
+                if (b3) { b3.style.background = 'rgba(255, 255, 255, 0.15)'; b3.style.color = '#fff'; }
+
+                if (l1) l1.style.background = 'var(--accent-emerald)';
+                if (l2) l2.style.background = 'rgba(255, 255, 255, 0.1)';
+
+                if (d2) d2.style.display = 'block';
+                if (d3) d3.style.display = 'none';
+            } else if (stepNum === 3) {
+                if (s1) s1.style.color = 'var(--accent-emerald)';
+                if (b1) { b1.style.background = 'var(--accent-emerald)'; b1.style.color = '#000'; }
+                if (s2) s2.style.color = 'var(--accent-emerald)';
+                if (b2) { b2.style.background = 'var(--accent-emerald)'; b2.style.color = '#000'; }
+                if (s3) s3.style.color = 'var(--accent-cyan)';
+                if (b3) { b3.style.background = 'var(--accent-cyan)'; b3.style.color = '#000'; }
+
+                if (l1) l1.style.background = 'var(--accent-emerald)';
+                if (l2) l2.style.background = 'var(--accent-emerald)';
+
+                if (d2) d2.style.display = 'block';
+                if (d3) d3.style.display = 'block';
+            }
+        }
+
+        async function triggerDownloadBigFolder() {
+            if (!currentParsedFolderUrl) return;
+            const dlProgressWrap = document.getElementById('bigFileDownloadProgressWrap');
+            const dlValue = document.getElementById('bigFileDownloadValue');
+            const dlFill = document.getElementById('bigFileDownloadFill');
+            const step1PartInfo = document.getElementById('step1PartInfo');
+            const step1PartVal = document.getElementById('step1PartVal');
+            const step1PartFill = document.getElementById('step1PartFill');
+
+            if (dlProgressWrap) dlProgressWrap.style.display = 'block';
+            updateDlStepUI(1);
+
+            if (step1PartInfo) step1PartInfo.innerHTML = '<i class="fa-solid fa-cloud-arrow-down"></i> 当前切片: 正在连接服务器...';
+            if (step1PartVal) step1PartVal.textContent = '0 MB / 0 MB (0%)';
+            if (step1PartFill) step1PartFill.style.width = '0%';
+            if (dlValue) dlValue.textContent = '0 MB / 0 MB (0%)';
+            if (dlFill) dlFill.style.width = '0%';
+
+            showToast('已启动大文件分段合并下载任务...', 'info');
+
+            try {
+                const xhr = new XMLHttpRequest();
+                const downUrl = `./api.php?action=download_folder&stream=1&url=${encodeURIComponent(currentParsedFolderUrl)}&pwd=${encodeURIComponent(currentParsedPwd)}`;
+                xhr.open('GET', downUrl, true);
+
+                let lastIndex = 0;
+                let finalRes = null;
+
+                xhr.onprogress = () => {
+                    const text = xhr.responseText;
+                    let doubleNewlineIndex;
+                    while ((doubleNewlineIndex = text.indexOf('\n\n', lastIndex)) !== -1) {
+                        const block = text.substring(lastIndex, doubleNewlineIndex);
+                        lastIndex = doubleNewlineIndex + 2;
+
+                        let eventName = '';
+                        let eventData = null;
+
+                        const lines = block.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('event:')) eventName = line.substring(6).trim();
+                            else if (line.startsWith('data:')) {
+                                try { eventData = JSON.parse(line.substring(5).trim()); } catch(e) {}
+                            }
+                        }
+
+                        if (eventName === 'progress' && eventData) {
+                            if (eventData.stage === 'merging') {
+                                updateDlStepUI(2);
+                            } else {
+                                updateDlStepUI(1);
+                                const pIdx = eventData.part_index || 1;
+                                const pTot = eventData.part_total || 1;
+                                const pName = eventData.part_name || 'part';
+                                const pNowMB = ((eventData.part_now_bytes || 0) / 1048576).toFixed(1);
+                                const pTotMB = ((eventData.part_total_bytes || 0) / 1048576).toFixed(1);
+                                const pPct = eventData.part_percent || 0;
+
+                                const totNowMB = ((eventData.now_bytes || 0) / 1048576).toFixed(1);
+                                const totMB = ((eventData.total_bytes || 0) / 1048576).toFixed(1);
+                                const totPct = eventData.percent || 0;
+
+                                if (step1PartInfo) step1PartInfo.innerHTML = `<i class="fa-solid fa-cloud-arrow-down"></i> 切片 [${pIdx}/${pTot}]: ${escapeHtml(pName)}`;
+                                if (step1PartVal) step1PartVal.textContent = `${pNowMB} MB / ${pTotMB} MB (${pPct}%)`;
+                                if (step1PartFill) step1PartFill.style.width = `${pPct}%`;
+
+                                if (dlValue) dlValue.textContent = `${totNowMB} MB / ${totMB} MB (${totPct}%)`;
+                                if (dlFill) dlFill.style.width = `${totPct}%`;
+                            }
+                        } else if (eventName === 'result' && eventData) {
+                            finalRes = eventData;
+                        }
+                    }
+                };
+
+                xhr.onload = () => {
+                    if (!finalRes) {
+                        try { finalRes = JSON.parse(xhr.responseText); } catch(e) {}
+                    }
+                    if (finalRes && (finalRes.code === 0 || finalRes.code === 1)) {
+                        updateDlStepUI(3);
+                        if (dlFill) dlFill.style.width = '100%';
+                        if (dlValue) dlValue.textContent = '100% (数据流合并校验完成)';
+                        showToast('切片无缝合并完成！正在保存至您的本地设备...', 'success');
+                        if (finalRes.transit_token) {
+                            setTimeout(() => {
+                                window.location.href = `./api.php?action=fetch_transit&token=${encodeURIComponent(finalRes.transit_token)}`;
+                            }, 500);
+                        }
+                    } else {
+                        showToast('下载合并失败: ' + (finalRes ? finalRes.msg : '未知错误'), 'error');
+                    }
+                };
+
+                xhr.onerror = () => showToast('连接下载服务异常', 'error');
+                xhr.send();
+            } catch(e) {
+                showToast('下载任务失败: ' + e.message, 'error');
+            }
+        }
+
+        function copyDirectUrl() {
+            const url = document.getElementById('resDirectUrl').value;
+            navigator.clipboard.writeText(url).then(() => showToast('高速直链已成功复制！', 'success'));
+        }
+
+        // --- 通用一键文件上传引擎 (前端秒切片 + 并发多通道传输) ---
+        async function uploadFileDirectly(file, targetFolderId = currentFolderId, pwd = '', desc = '', targetFolderName = '', maxSizeMB = 50) {
+            if (!file) return;
+            if (!userCookieStr) {
+                showToast('上传文件需要关联登录蓝奏云账号，请先点击登录！', 'warning');
+                openLoginModal();
+                return;
+            }
+
+            // 自动切换到 "文件极速上传" 菜单标签
+            const uploadTabBtn = document.querySelectorAll('.menu-item button')[2];
+            if (uploadTabBtn) switchTab('tab-upload', uploadTabBtn);
+
+            const fileName = file.name;
+            const sizeMB = (file.size / 1048576).toFixed(2);
+            const maxBytes = maxSizeMB * 1048576;
+            const isBigFile = file.size > maxBytes;
+
+            const inlineCard = document.getElementById('inlineUploadProgressCard');
+            const titleText = document.getElementById('inlineUploadTitleText');
+            const badge = document.getElementById('inlineUploadBadge');
+            const channelsContainer = document.getElementById('channelsProgressContainer');
+            const totalContainer = document.getElementById('totalProgressContainer');
+            const totalVal = document.getElementById('totalProgressValue');
+            const totalFill = document.getElementById('totalProgressFill');
+            const logsContainer = document.getElementById('inlineStepLogsContainer');
+
+            let chunkLabel = null;
+            let chunkVal = null;
+            let chunkFill = null;
+
+            if (inlineCard) {
+                inlineCard.style.display = 'block';
+                titleText.textContent = `正在上传: ${fileName} (${sizeMB} MB)`;
+                badge.className = 'badge-processing';
+                badge.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> 处理中';
+                badge.style.background = 'rgba(99, 102, 241, 0.2)';
+                badge.style.color = 'var(--accent-primary)';
+
+                if (isBigFile) {
+                    totalContainer.style.display = 'block';
+                    totalVal.textContent = `0 MB / ${sizeMB} MB (0%)`;
+                    totalFill.style.width = '0%';
+                } else {
+                    totalContainer.style.display = 'none';
+                    if (channelsContainer) {
+                        channelsContainer.innerHTML = `
+                            <div id="singleChunkProgressWrap" style="margin-bottom: 0;">
+                                <div style="display: flex; justify-content: space-between; font-size: 0.84rem; margin-bottom: 0.4rem;">
+                                    <span style="font-weight: 700; color: var(--accent-cyan);" id="chunkProgressLabel"><i class="fa-solid fa-server"></i> 单文件传输进度</span>
+                                    <span style="font-weight: 600; color: #fff;" id="chunkProgressValue">0 MB / ${sizeMB} MB (0%)</span>
+                                </div>
+                                <div class="progress-bar-wrap" style="display: block; margin-top: 0; height: 8px; border-radius: 4px;">
+                                    <div class="progress-bar-fill" id="chunkProgressFill" style="width: 0%; background: linear-gradient(90deg, #06b6d4, #3b82f6); border-radius: 4px;"></div>
+                                </div>
+                            </div>
+                        `;
+                        chunkLabel = document.getElementById('chunkProgressLabel');
+                        chunkVal = document.getElementById('chunkProgressValue');
+                        chunkFill = document.getElementById('chunkProgressFill');
+                    }
+                }
+
+                logsContainer.innerHTML = '';
+            }
+
+            const appendLog = (iconHtml, text) => {
+                if (!logsContainer) return;
+                const logItem = document.createElement('div');
+                logItem.style.display = 'flex';
+                logItem.style.alignItems = 'center';
+                logItem.style.gap = '0.5rem';
+                logItem.style.color = '#e2e8f0';
+
+                const timeStr = new Date().toLocaleTimeString();
+                logItem.innerHTML = `<span style="color: var(--text-muted); font-size: 0.75rem;">[${timeStr}]</span> ${iconHtml} <span>${text}</span>`;
+                logsContainer.appendChild(logItem);
+                logsContainer.scrollTop = logsContainer.scrollHeight;
+            };
+
+            appendLog('<i class="fa-solid fa-circle-play" style="color: var(--accent-cyan);"></i>', `任务初始化成功: ${fileName} (${sizeMB} MB)${isBigFile ? ` [启动前端极速切片 + 2通道并发传输机制]` : ''}`);
+
+            if (isBigFile) {
+                // --- 极速分片机制：浏览器端直接切片 + 2 并发双通道传输 ---
+                try {
+                    appendLog('<i class="fa-solid fa-folder-plus" style="color: var(--accent-amber);"></i>', `正在蓝奏云建立专属文件夹: ${fileName}...`);
+                    const prepRes = await apiPost('prepare_bigfile', {
+                        file_name: fileName,
+                        folder_id: targetFolderId,
+                        folder_name: targetFolderName
+                    });
+
+                    if (prepRes.code !== 0 || !prepRes.data || !prepRes.data.folder_id) {
+                        throw new Error(prepRes.msg || '创建大文件专属文件夹失败');
+                    }
+
+                    const bigFolderId = prepRes.data.folder_id;
+                    appendLog('<i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i>', `专属文件夹建立成功 (ID: ${bigFolderId})`);
+
+                    // 计算前端切片
+                    const chunks = [];
+                    let offset = 0;
+                    const totalBytes = file.size;
+                    const validSuffixes = [
+                        'doc', 'docx', 'zip', 'rar', 'apk', 'txt', 'exe', '7z', 'e', 'z', 'ct', 'ke', 'cetrainer', 'db', 'tar', 'pdf', 'w3x',
+                        'epub', 'mobi', 'azw', 'azw3', 'osk', 'osz', 'xpa', 'cpk', 'lua', 'jar', 'dmg', 'ppt', 'pptx', 'xls', 'xlsx', 'mp3',
+                        'ipa', 'iso', 'img', 'gho', 'ttf', 'ttc', 'txf', 'dwg', 'bat', 'imazingapp', 'dll', 'crx', 'xapk', 'conf',
+                        'deb', 'rp', 'rpm', 'rplib', 'mobileconfig', 'appimage', 'lolgezi', 'flac', 'cad', 'hwt', 'accdb', 'ce',
+                        'xmind', 'enc', 'bds', 'bdi', 'ssf', 'it', 'pkg', 'cfg', 'mp4', 'avi', 'png', 'jpeg', 'jpg', 'gif', 'webp', 'brushset'
+                    ];
+
+                    while (offset < totalBytes) {
+                        const reduceMB = Math.floor(Math.random() * 20) + 5;
+                        const targetChunkBytes = Math.max(10 * 1048576, maxBytes - (reduceMB * 1048576));
+                        const currentChunkBytes = Math.min(targetChunkBytes, totalBytes - offset);
+
+                        const ext = validSuffixes[Math.floor(Math.random() * validSuffixes.length)];
+                        const hash = Math.random().toString(36).substring(2, 10);
+                        const chunkName = `part_${hash}.${ext}`;
+
+                        const blob = file.slice(offset, offset + currentChunkBytes);
+                        chunks.push({
+                            name: chunkName,
+                            blob: blob,
+                            size: currentChunkBytes,
+                            offset: offset
+                        });
+                        offset += currentChunkBytes;
+                    }
+
+                    appendLog('<i class="fa-solid fa-scissors" style="color: var(--accent-cyan);"></i>', `完成前端切片分割，共切为 ${chunks.length} 个切片 (大小 10~${maxSizeMB}MB)`);
+
+                    // 严格并发控制执行池 (双通道并发，维持最多 2 个切片同时传输)
+                    const limit = Math.min(2, chunks.length);
+
+                    // 动态初始化双通道专属进度条 DOM
+                    if (channelsContainer) {
+                        channelsContainer.innerHTML = '';
+                        for (let c = 0; c < limit; c++) {
+                            const cDiv = document.createElement('div');
+                            cDiv.style.background = 'rgba(30, 41, 59, 0.6)';
+                            cDiv.style.border = '1px solid rgba(255, 255, 255, 0.08)';
+                            cDiv.style.borderRadius = '10px';
+                            cDiv.style.padding = '0.75rem';
+
+                            const colorGradient = c === 0
+                                ? 'linear-gradient(90deg, #06b6d4, #3b82f6)'
+                                : 'linear-gradient(90deg, #10b981, #06b6d4)';
+                            const iconColor = c === 0 ? 'var(--accent-cyan)' : 'var(--accent-emerald)';
+
+                            cDiv.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; font-size: 0.82rem; margin-bottom: 0.35rem;">
+                                    <span style="font-weight: 700; color: ${iconColor};" id="channelLabel_${c}">
+                                        <i class="fa-solid fa-bolt"></i> 通道 #${c + 1}: 待命
+                                    </span>
+                                    <span style="font-weight: 600; color: #fff;" id="channelValue_${c}">0 MB / 0 MB (0%)</span>
+                                </div>
+                                <div class="progress-bar-wrap" style="display: block; margin-top: 0; height: 8px; border-radius: 4px;">
+                                    <div class="progress-bar-fill" id="channelFill_${c}" style="width: 0%; background: ${colorGradient}; border-radius: 4px; transition: width 0.15s ease;"></div>
+                                </div>
+                            `;
+                            channelsContainer.appendChild(cDiv);
+                        }
+                    }
+
+                    const chunkProgresses = new Array(chunks.length).fill(0);
+                    const parts = new Array(chunks.length).fill('');
+
+                    const updateGlobalProgress = () => {
+                        const currentUploaded = chunkProgresses.reduce((a, b) => a + b, 0);
+                        const pct = Math.min(100, Math.round((currentUploaded / totalBytes) * 100));
+                        totalFill.style.width = pct + '%';
+                        totalVal.textContent = `${(currentUploaded / 1048576).toFixed(1)} MB / ${sizeMB} MB (${pct}%)`;
+                    };
+
+                    const uploadChunkTask = async (chunkItem, index, channelId) => {
+                        const chunkMB = (chunkItem.size / 1048576).toFixed(1);
+                        appendLog('<i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-cyan);"></i>', `通道 [${channelId + 1}] 开始传输切片 [${index + 1}/${chunks.length}]: ${chunkItem.name} (${chunkMB} MB)`);
+
+                        const channelLabelEl = document.getElementById(`channelLabel_${channelId}`);
+                        const channelValueEl = document.getElementById(`channelValue_${channelId}`);
+                        const channelFillEl = document.getElementById(`channelFill_${channelId}`);
+                        const iconColor = channelId === 0 ? 'var(--accent-cyan)' : 'var(--accent-emerald)';
+
+                        if (channelLabelEl) {
+                            channelLabelEl.innerHTML = `<i class="fa-solid fa-bolt" style="color: ${iconColor};"></i> 通道 #${channelId + 1}: 切片 [${index + 1}/${chunks.length}] (${chunkItem.name})`;
+                        }
+                        if (channelValueEl) channelValueEl.textContent = `0 MB / ${chunkMB} MB (0%)`;
+                        if (channelFillEl) channelFillEl.style.width = '0%';
+
+                        const chunkFormData = new FormData();
+                        chunkFormData.append('action', 'upload');
+                        chunkFormData.append('file', new File([chunkItem.blob], chunkItem.name, { type: 'application/octet-stream' }));
+                        chunkFormData.append('folder_id', bigFolderId);
+                        if (userCookieStr) chunkFormData.append('cookie', userCookieStr);
+
+                        let success = false;
+                        let lastErr = '';
+
+                        for (let attempt = 1; attempt <= 3; attempt++) {
+                            if (attempt > 1) {
+                                chunkProgresses[index] = 0;
+                                updateGlobalProgress();
+                                if (channelFillEl) channelFillEl.style.width = '0%';
+                                if (channelValueEl) channelValueEl.textContent = `重试中 (0%)...`;
+                                appendLog('<i class="fa-solid fa-rotate-right" style="color: var(--accent-amber);"></i>', `通道 [${channelId + 1}] 切片 [${index + 1}/${chunks.length}] 传输卡顿 (${lastErr})，正在进行第 ${attempt}/3 次自动重试...`);
+                                await new Promise(r => setTimeout(r, 2000));
+                            }
+
+                            try {
+                                const res = await new Promise((resolve) => {
+                                    const xhr = new XMLHttpRequest();
+                                    const chunkUrl = `./upload.php?action=upload&stream=1&folder_id=${bigFolderId}${userCookieStr ? '&cookie=' + encodeURIComponent(userCookieStr) : ''}`;
+                                    xhr.open('POST', chunkUrl, true);
+
+                                    let lastIndex = 0;
+                                    let finalResult = null;
+
+                                    xhr.upload.onprogress = (e) => {
+                                        if (e.lengthComputable && e.loaded < e.total) {
+                                            const cPct = Math.round((e.loaded / e.total) * 100);
+                                            if (cPct < 100) {
+                                                if (channelFillEl) channelFillEl.style.width = Math.min(cPct, 95) + '%';
+                                                if (channelValueEl) channelValueEl.textContent = `提交至本地服务器 (${cPct}%)...`;
+                                            }
+                                        }
+                                    };
+
+                                    xhr.onprogress = () => {
+                                        const text = xhr.responseText;
+                                        let doubleNewlineIndex;
+                                        while ((doubleNewlineIndex = text.indexOf('\n\n', lastIndex)) !== -1) {
+                                            const block = text.substring(lastIndex, doubleNewlineIndex);
+                                            lastIndex = doubleNewlineIndex + 2;
+
+                                            let eventName = '';
+                                            let eventData = null;
+
+                                            const lines = block.split('\n');
+                                            for (const line of lines) {
+                                                if (line.startsWith('event:')) {
+                                                    eventName = line.substring(6).trim();
+                                                } else if (line.startsWith('data:')) {
+                                                    try {
+                                                        eventData = JSON.parse(line.substring(5).trim());
+                                                    } catch (e) { }
+                                                }
+                                            }
+
+                                            if (eventName && eventData) {
+                                                if (eventName === 'progress') {
+                                                    const nowBytes = eventData.now_bytes || eventData.chunk_now_bytes || 0;
+                                                    const pct = eventData.percent || eventData.chunk_percent || 0;
+                                                    chunkProgresses[index] = nowBytes;
+                                                    updateGlobalProgress();
+
+                                                    if (channelFillEl) channelFillEl.style.width = pct + '%';
+                                                    if (channelValueEl) {
+                                                        channelValueEl.textContent = `${(nowBytes / 1048576).toFixed(1)} MB / ${chunkMB} MB (${pct}%)`;
+                                                    }
+                                                } else if (eventName === 'result') {
+                                                    finalResult = eventData;
+                                                }
+                                            }
+                                        }
+                                    };
+
+                                    xhr.onload = () => {
+                                        try {
+                                            if (!finalResult) {
+                                                let text = (xhr.responseText || '').trim();
+                                                const m = text.match(/\{[\s\S]*\}/);
+                                                if (m) text = m[0];
+                                                finalResult = JSON.parse(text);
+                                            }
+                                            resolve(finalResult);
+                                        } catch (err) {
+                                            resolve({ code: -1, msg: '服务器响应解析失败' });
+                                        }
+                                    };
+
+                                    xhr.onerror = () => resolve({ code: -1, msg: '网络连接超时/中断' });
+                                    xhr.send(chunkFormData);
+                                });
+
+                                if (res && (res.code === 0 || res.code === 1)) {
+                                    success = true;
+                                    parts[index] = chunkItem.name;
+                                    chunkProgresses[index] = chunkItem.size;
+                                    updateGlobalProgress();
+
+                                    if (channelFillEl) channelFillEl.style.width = '100%';
+                                    if (channelValueEl) channelValueEl.textContent = `${chunkMB} MB / ${chunkMB} MB (100%) 已完成`;
+                                    appendLog('<i class="fa-solid fa-circle-check" style="color: var(--accent-emerald);"></i>', `通道 [${channelId + 1}] 切片 [${index + 1}/${chunks.length}] ${chunkItem.name} 蓝奏云上传完成`);
+                                    break;
+                                } else {
+                                    lastErr = res ? res.msg : '上传失败';
+                                }
+                            } catch (e) {
+                                lastErr = e.message;
+                            }
+                        }
+
+                        if (!success) {
+                            throw new Error(`切片 [${index + 1}] 上传失败: ${lastErr}`);
+                        }
+                    };
+
+                    let currentChunkIndex = 0;
+
+                    async function runWorker(cId) {
+                        while (currentChunkIndex < chunks.length) {
+                            const idx = currentChunkIndex++;
+                            await uploadChunkTask(chunks[idx], idx, cId);
+                        }
+                        const cLabelEl = document.getElementById(`channelLabel_${cId}`);
+                        const cValEl = document.getElementById(`channelValue_${cId}`);
+                        if (cLabelEl) cLabelEl.innerHTML = `<i class="fa-solid fa-check-double" style="color: var(--accent-emerald);"></i> 通道 #${cId + 1}: 全部切片上传完成`;
+                        if (cValEl) cValEl.textContent = '完成';
+                    }
+
+                    const activeWorkers = Array.from(
+                        { length: limit },
+                        (_, c) => runWorker(c)
+                    );
+                    await Promise.all(activeWorkers);
+
+                    appendLog('<i class="fa-solid fa-file-code" style="color: var(--accent-amber);"></i>', `所有切片传输完成，正在生成大文件索引记录文件 (record.txt)...`);
+
+                    const finishRes = await apiPost('finish_bigfile', {
+                        folder_id: bigFolderId,
+                        file_name: fileName,
+                        file_size: file.size,
+                        parts: JSON.stringify(parts),
+                        pwd: pwd,
+                        desc: desc
+                    });
+
+                    if (finishRes.code === 0) {
+                        totalFill.style.width = '100%';
+                        badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> 上传成功';
+                        badge.style.background = 'rgba(16, 185, 129, 0.2)';
+                        badge.style.color = 'var(--accent-emerald)';
+
+                        appendLog('<i class="fa-solid fa-flag-checkered" style="color: var(--accent-emerald);"></i>', `大文件并发切块合并上传完成！`);
+                        showToast(`文件 "${fileName}" 极速上传成功！`, 'success');
+                        setTimeout(() => {
+                            switchTab('tab-files', document.querySelectorAll('.menu-item button')[0]);
+                            loadFolder(currentFolderId, currentFolderName);
+                        }, 1800);
+                    } else {
+                        throw new Error(finishRes.msg || '完成大文件合并索引失败');
+                    }
+
+                } catch (err) {
+                    badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 上传失败';
+                    badge.style.background = 'rgba(244, 63, 94, 0.2)';
+                    badge.style.color = 'var(--accent-rose)';
+                    appendLog('<i class="fa-solid fa-circle-xmark" style="color: var(--accent-rose);"></i>', `失败原因: ${err.message}`);
+                    showToast('大文件极速上传失败: ' + err.message, 'error');
+                }
+                return;
+            }
+
+            // --- 普通小文件上传逻辑 (< maxSizeMB) ---
+            const formData = new FormData();
+            formData.append('action', 'upload');
+            formData.append('file', file);
+            formData.append('folder_id', targetFolderId);
+            formData.append('max_size_mb', maxSizeMB);
+            if (targetFolderName) formData.append('folder_name', targetFolderName);
+            if (pwd) formData.append('pwd', pwd);
+            if (desc) formData.append('desc', desc);
+            if (userCookieStr) formData.append('cookie', userCookieStr);
+
+            try {
+                const xhr = new XMLHttpRequest();
+                const uploadUrl = `./upload.php?action=upload&stream=1&folder_id=${targetFolderId}&max_size_mb=${maxSizeMB}${targetFolderName ? '&folder_name=' + encodeURIComponent(targetFolderName) : ''}${userCookieStr ? '&cookie=' + encodeURIComponent(userCookieStr) : ''}`;
+                xhr.open('POST', uploadUrl, true);
+
+                xhr.upload.onprogress = (e) => {
+                    if (e.lengthComputable && chunkFill && chunkVal) {
+                        const percent = Math.round((e.loaded / e.total) * 100);
+                        if (percent < 100) {
+                            chunkFill.style.width = Math.min(percent, 95) + '%';
+                            chunkVal.textContent = `${(e.loaded / 1048576).toFixed(1)} MB / ${(e.total / 1048576).toFixed(1)} MB (${percent}%)`;
+                        } else {
+                            chunkFill.style.width = '100%';
+                            chunkVal.textContent = '已成功提交至服务器，正在处理...';
+                        }
+                    }
+                };
+
+                let lastIndex = 0;
+                let finalResult = null;
+
+                const processSseBlock = (eventName, eventData) => {
+                    if (eventName === 'step') {
+                        const stage = eventData.stage;
+                        if (stage === 'uploaded_small_file') {
+                            appendLog('<i class="fa-solid fa-flag-checkered" style="color: var(--accent-emerald);"></i>', `单文件上传完成！`);
+                        }
+                    } else if (eventName === 'progress') {
+                        const pct = eventData.percent || 0;
+                        const nowMB = (eventData.now_bytes / 1048576).toFixed(1);
+                        const totalMB = (eventData.total_bytes / 1048576).toFixed(1);
+                        chunkFill.style.width = pct + '%';
+                        chunkVal.textContent = `${nowMB} MB / ${totalMB} MB (${pct}%)`;
+                    } else if (eventName === 'result') {
+                        finalResult = eventData;
+                    }
+                };
+
+                xhr.onprogress = () => {
+                    const text = xhr.responseText;
+                    let doubleNewlineIndex;
+                    while ((doubleNewlineIndex = text.indexOf('\n\n', lastIndex)) !== -1) {
+                        const block = text.substring(lastIndex, doubleNewlineIndex);
+                        lastIndex = doubleNewlineIndex + 2;
+
+                        let eventName = '';
+                        let eventData = null;
+
+                        const lines = block.split('\n');
+                        for (const line of lines) {
+                            if (line.startsWith('event:')) {
+                                eventName = line.substring(6).trim();
+                            } else if (line.startsWith('data:')) {
+                                try {
+                                    eventData = JSON.parse(line.substring(5).trim());
+                                } catch (e) { }
+                            }
+                        }
+
+                        if (eventName && eventData) {
+                            processSseBlock(eventName, eventData);
+                        }
+                    }
+                };
+
+                xhr.onload = () => {
+                    try {
+                        if (!finalResult) {
+                            let rawText = (xhr.responseText || '').trim();
+                            const jsonMatch = rawText.match(/\{[\s\S]*\}/);
+                            if (jsonMatch) rawText = jsonMatch[0];
+                            finalResult = JSON.parse(rawText);
+                        }
+
+                        if (finalResult && (finalResult.code === 0 || finalResult.code === 1)) {
+                            chunkFill.style.width = '100%';
+                            badge.innerHTML = '<i class="fa-solid fa-circle-check"></i> 上传成功';
+                            badge.style.background = 'rgba(16, 185, 129, 0.2)';
+                            badge.style.color = 'var(--accent-emerald)';
+
+                            showToast(`文件 "${fileName}" 上传成功！`, 'success');
+                            setTimeout(() => {
+                                switchTab('tab-files', document.querySelectorAll('.menu-item button')[0]);
+                                loadFolder(currentFolderId, currentFolderName);
+                            }, 1800);
+                        } else {
+                            badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 上传失败';
+                            badge.style.background = 'rgba(244, 63, 94, 0.2)';
+                            badge.style.color = 'var(--accent-rose)';
+                            appendLog('<i class="fa-solid fa-circle-xmark" style="color: var(--accent-rose);"></i>', `失败原因: ${finalResult ? finalResult.msg : '未知错误'}`);
+                            showToast('上传失败: ' + (finalResult ? finalResult.msg : '未知错误'), 'error');
+                        }
+                    } catch (err) {
+                        badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 响应解析异常';
+                        showToast('服务器响应解析异常', 'error');
+                    }
+                };
+
+                xhr.onerror = () => {
+                    badge.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> 连接失败';
+                    showToast('无法连接到 API 服务端', 'error');
+                };
+
+                xhr.send(formData);
+            } catch (e) {
+                showToast('上传异常: ' + e.message, 'error');
+            }
+        }
+
+        function handleFileSelected(file) {
+            if (file) {
+                selectedUploadFile = file;
+                const sizeMB = (file.size / 1048576).toFixed(2);
+                const maxSizeMB = parseInt(document.getElementById('uploadMaxSizeMB')?.value || '50', 10);
+                document.getElementById('uploadBoxTitle').textContent = `已选择文件: ${file.name}`;
+                document.getElementById('uploadBoxSubtitle').textContent = `大小: ${sizeMB} MB ${file.size > (maxSizeMB * 1048576) ? `(大于 ${maxSizeMB}M，将按 ${maxSizeMB}M 阈值分块切片上传)` : ''}`;
+            }
+        }
+
+        function submitUpload() {
+            if (!selectedUploadFile) { showToast('请先选择要上传的文件', 'warning'); return; }
+            const pwd = document.getElementById('uploadPasscode').value.trim();
+            const desc = document.getElementById('uploadDescription').value.trim();
+            const folderName = document.getElementById('uploadTargetFolderName').value.trim();
+            const maxSizeMB = parseInt(document.getElementById('uploadMaxSizeMB')?.value || '50', 10);
+            uploadFileDirectly(selectedUploadFile, currentFolderId, pwd, desc, folderName, maxSizeMB);
+        }
+
+        // --- 全局拖拽文件直接上传 ---
+        const mainArea = document.getElementById('mainAppArea');
+        mainArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            document.getElementById('uploadDragArea').classList.add('dragover');
+        });
+        mainArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            document.getElementById('uploadDragArea').classList.remove('dragover');
+        });
+        mainArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            document.getElementById('uploadDragArea').classList.remove('dragover');
+            if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+                uploadFileDirectly(e.dataTransfer.files[0]);
+            }
+        });
+
+        // --- 属性修改与删除 ---
+        function openEditModal(id, type, actionType, title, defaultVal = '') {
+            document.getElementById('editTargetId').value = id;
+            document.getElementById('editTargetType').value = type;
+            document.getElementById('editActionType').value = actionType;
+            document.getElementById('editModalTitle').textContent = title;
+            document.getElementById('editModalInput').value = defaultVal;
+            openModal('editModal');
+        }
+
+        async function doSubmitEdit() {
+            const id = document.getElementById('editTargetId').value;
+            const type = document.getElementById('editTargetType').value;
+            const actionType = document.getElementById('editActionType').value;
+            const val = document.getElementById('editModalInput').value.trim();
+
+            const data = { type };
+            if (type === 'file') data.file_id = id;
+            else data.folder_id = id;
+
+            if (actionType === 'set_passwd') data.pwd = val;
+            if (actionType === 'rename_dir') data.folder_name = val;
+            if (actionType === 'set_desc') data.desc = val;
+
+            const res = await apiPost(actionType, data);
+            if (res.code === 0) {
+                closeModal('editModal');
+                showToast('属性修改成功', 'success');
+                loadFolder(currentFolderId, currentFolderName);
+            } else {
+                showToast('操作失败: ' + res.msg, 'error');
+            }
+        }
+
+        async function deleteItem(id, type) {
+            const confirmed = await showConfirm('删除确认', '确定要将该项移入回收站吗？');
+            if (!confirmed) return;
+
+            const data = { type };
+            if (type === 'file') data.file_id = id;
+            else data.folder_id = id;
+
+            const res = await apiPost('delete', data);
+            if (res.code === 0) {
+                showToast('已移入回收站', 'success');
+                loadFolder(currentFolderId, currentFolderName);
+            } else {
+                showToast('删除失败: ' + res.msg, 'error');
+            }
+        }
+
+        // --- 分享与二维码展示 ---
+        async function getShareDetail(targetId, type = 'file') {
+            showToast('获取分享链接中...', 'info');
+            const data = { type };
+            if (type === 'file') data.file_id = targetId;
+            else data.folder_id = targetId;
+
+            const res = await apiPost('share_info', data);
+            if (res.code === 0 && res.data) {
+                const shareUrl = res.data.url;
+                const pwd = res.data.pwd || '无密码';
+
+                document.getElementById('shareUrlInput').value = shareUrl;
+                document.getElementById('sharePwdInput').value = pwd;
+                document.getElementById('shareQrImg').src = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(shareUrl)}`;
+
+                openModal('shareModal');
+            } else {
+                showToast('获取分享信息失败: ' + (res ? res.msg : '未知错误'), 'error');
+            }
+        }
+
+        function copyShareText() {
+            const url = document.getElementById('shareUrlInput').value;
+            const pwd = document.getElementById('sharePwdInput').value;
+            const text = `链接: ${url} 提取码: ${pwd}`;
+            navigator.clipboard.writeText(text).then(() => showToast('分享信息已复制到剪贴板！', 'success'));
+        }
+    </script>
+</body>
+
+</html>

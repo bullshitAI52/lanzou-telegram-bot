@@ -16,10 +16,11 @@ function request(fields, secret, onProgress) {
     });
 }
 form.onsubmit=async e=>{
-    e.preventDefault();const selected=file.files[0],secret=key.value;
+    e.preventDefault();const selected=file.files[0],secret=key.value.trim();
+    if(!secret){statusEl.textContent='请输入上传口令';return}
     if(selected.size>2*1073741824){statusEl.textContent='文件超过 2 GB';return}
     button.disabled=file.disabled=key.disabled=true;link.hidden=copy.hidden=true;progress.value=0;copy.textContent='复制链接';
-    let stopped=false;
+    let stopped=false,taskCreated=false;
     const retry=async(fields,onProgress)=>{
         for(let attempt=0;attempt<4;attempt++){
             if(stopped)throw Error('上传已停止');
@@ -33,6 +34,7 @@ form.onsubmit=async e=>{
     try{
         statusEl.textContent='正在创建分片上传任务…';
         const task=await request({action:'init',name:selected.name,size:selected.size},secret);
+        taskCreated=true;
         const sent=Array(task.count).fill(0);let next=0,complete=0;
         const worker=async()=>{
             while(next<task.count && !stopped){
@@ -50,7 +52,7 @@ form.onsubmit=async e=>{
         const out=await retry({action:'finish',id:task.id});
         progress.value=100;link.href=out.url;link.textContent=out.url;link.hidden=copy.hidden=false;
         statusEl.textContent='上传成功！链接有效期至 '+new Date(out.expires*1000).toLocaleString();
-    }catch(err){stopped=true;statusEl.textContent='上传失败：'+err.message+'。未完成的分片将在 24 小时后清理。'}
+    }catch(err){stopped=true;statusEl.textContent=err.status===403?'上传口令不正确，请复制「网页上传口令.txt」中的完整内容后重试。':'上传失败：'+err.message+(taskCreated?'。未完成的分片将在 24 小时后清理。':'');}
     finally{button.disabled=file.disabled=key.disabled=false}
 };
 copy.onclick=async()=>{try{await navigator.clipboard.writeText(link.href);copy.textContent='已复制'}catch(e){const r=document.createRange();r.selectNodeContents(link);const s=getSelection();s.removeAllRanges();s.addRange(r);copy.textContent='链接已选中，请长按或按 Ctrl/Cmd+C 复制'}};
